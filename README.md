@@ -37,8 +37,11 @@
 В данном разделе были применены следующие модели:
 #### `Fully Connected Network`, в которую входят несколько слоев `nn.Linear` и `nn.BatchNorm1d`.
 
-#### `Branched Fully Connected Network`. 
-Она также состоит из слоев `nn.Linear` и `nn.BatchNorm1d`. 
+#### `Branched Fully Connected Network`.
+![image](https://user-images.githubusercontent.com/112618861/229566010-5db2e9ec-8832-443f-8a31-ee2826920819.png)
+(идея архитектуры нейросети и картинка взяты из работы Michelucci, Umberto, and Francesca Venturini. "Multi-task learning for multi-dimensional regression: Application to luminescence sensing." Applied Sciences 9.22 (2019): 4748., https://doi.org/10.3390/app9224748)
+
+Сеть также состоит из слоев `nn.Linear` и `nn.BatchNorm1d`. 
 Сеть делится на три части:
 - Общая часть (network_general): в ней осуществляется первичная обработка батча. После нее пайплайн сети расходится на два ветки - короткую и длинную.
 - Короткая ветвь (network_short): это один слой `nn.Linear`, который сжимает вектор размера `neck_features` до тензора размера `[batch_size, num_pars_y]`.
