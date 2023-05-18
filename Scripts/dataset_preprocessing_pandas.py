@@ -26,12 +26,14 @@ def split_df(df, num_common):
 
 
 class Scaler:
-    def __init__(self, scaler_type='standard', mode_number=4):
+    def __init__(self, scaler_x, scaler_y, mode_number=4):
         """
         Parameters
         ----------
-        scaler_type : str
-            Type of preferred scaler. 'Standard' and 'Robust' are available (default 'Standard').
+        scaler_x : scaler class
+            Scaler class for X-data
+        scaler_y : scaler class
+            Scaler class for Y-data
         mode_number : int
             Number of resonant modes in the dataset (default 4).
 
@@ -43,13 +45,9 @@ class Scaler:
         self.cols_x = None
         self.cols_y = None
         self.log_params = None
-
-        if scaler_type == 'standard':
-            self.s_x = sklearn.preprocessing.StandardScaler()
-            self.s_y = sklearn.preprocessing.StandardScaler()
-        elif scaler_type == 'robust':
-            self.s_x = sklearn.preprocessing.RobustScaler()
-            self.s_y = sklearn.preprocessing.RobustScaler()
+        
+        self.s_x = scaler_x
+        self.s_y = scaler_y
 
     def fit(self, x_train, y_train, log_params=None):
         """
