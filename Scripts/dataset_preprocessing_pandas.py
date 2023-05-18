@@ -1,7 +1,5 @@
 import pandas as pd
 
-from sklearn.preprocessing import RobustScaler, StandardScaler
-
 def split_df(df, num_common):
     """
     Splits full dataframe, containing both X and Y data, into two separate DataFrames of X and Y parts.
@@ -47,11 +45,11 @@ class Scaler:
         self.log_params = None
 
         if scaler_type == 'standard':
-            self.s_x = StandardScaler()
-            self.s_y = StandardScaler()
+            self.s_x = sklearn.preprocessing.StandardScaler()
+            self.s_y = sklearn.preprocessing.StandardScaler()
         elif scaler_type == 'robust':
-            self.s_x = RobustScaler()
-            self.s_y = RobustScaler()
+            self.s_x = sklearn.preprocessing.RobustScaler()
+            self.s_y = sklearn.preprocessing.RobustScaler()
 
     def fit(self, x_train, y_train, log_params=None):
         """
