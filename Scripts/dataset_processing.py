@@ -53,7 +53,6 @@ def row_col_transform(df, num_common):
     return pd.DataFrame(data)
 
 
-
 def name_columns(df, data, num_common):
     """
     Names columns in 'data' DataFrame as in 'df' DataFrame.
@@ -61,16 +60,16 @@ def name_columns(df, data, num_common):
     Parameters
     ----------
     df : pd.DataFrame
-        Dataframe with named columns
+        Dataframe with named columns.
     data : pd.DataFrame
-        Dataframe which has new format (see function row_col_transform) but has unnamed columns
+        Dataframe which has new format (see function row_col_transform) but has unnamed columns.
     num_common : int
         Number of parameters which are common for all resonant modes, should go first in df.columns.
 
     Returns
     ----------
     data : pd.DataFrame
-        Processed dataframe with named columns
+        Processed dataframe with named columns.
     """
     # Number of different mode columns (all columns minus common columns)
     num_differ = df.shape[1] - num_common
@@ -178,6 +177,26 @@ def del_im_frequency(df):
     return df
 
 
+def convert_freq_to_float(df):
+    """
+    Converts all resonant frequency row to `float` (as they are `str`).
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataframe that contains non-`float` type of resonant frequencies.
+
+    Returns
+    ----------
+    df: pd.DataFrame
+        Dataframe with resonant frequencies of `float` type.
+    """
+    for mode_number in range(1, 5):
+        df.loc[:, f'M{mode_number} ' + 'Eigenfrequency (Hz)'] = df.loc[:, f'M{mode_number} ' + 'Eigenfrequency (Hz)'].astype(float)
+
+    return df
+
+
 def catch_limit_overflow(df, param_name, lower_limit, upper_limit):
     """
     Masks dataframe by limiting specified parameter between lower and upper limits.
@@ -218,10 +237,6 @@ def set_param_limits(df, param_limits):
     df : pd.DataFrame
         Dataframe with specified parameters limited.
     """
-    # Converts resonant frequency columns to `float`
-    for mode_number in range(1, 5):
-        df.loc[:, f'M{mode_number} ' + 'Eigenfrequency (Hz)'] = df.loc[:, f'M{mode_number} ' + 'Eigenfrequency (Hz)'].astype(float)
-
     for param in param_limits.keys():
         for mode_number in range(1, 5):
 
