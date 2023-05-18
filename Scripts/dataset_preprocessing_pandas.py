@@ -5,7 +5,7 @@ def split_df(df, general_param_number):
     """
     Splits full dataframe, containing both X and Y data, into two separate DataFrames of X and Y parts.
     
-    Note that general parameters should ho first in df.
+    Note that general parameters should go first in df.
 
     Parameters
     ----------
