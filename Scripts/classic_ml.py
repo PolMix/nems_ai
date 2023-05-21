@@ -268,3 +268,35 @@ def compare_models(dict_list, model_names, apply_log_mse, apply_log_r2, sharey='
             ax[row_index, col_index].grid(visible=True)
             ax[row_index, col_index].legend()
     plt.plot()
+
+    
+def plot_distribution(df, param_name, log_scale, modes=None):
+        """
+    Plots distribution of specified parameter for resonant modes.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataframe that contains specified parameter.
+    param_name : str
+        Specified parameter name. Note: no need to include mode number in param_name!
+    log_scale : bool
+        If True, y-axis of all plots will be log-scaled.
+    modes : list of int
+        List that contains mode numbers (default [1, 2, 3, 4]).
+    """
+    if modes is None:
+        modes = [1, 2, 3, 4]
+        
+    col_names_to_plot = []
+    
+    for mode in modes:
+        col_names_to_plot.append(f"M{mode} ' + 'param_name'")
+    
+    fig, ax = plt.subplots(nrows=1, ncols=len(col_names_to_plot), figsize=(5 * len(col_names_to_plot), 5))
+    for j in range(0, len(col_names_to_plot)):
+        sns.histplot(df.loc[:, col_names_to_plot[j]], ax=ax[j], log_scale=log_scale)
+        ax[j].set_title(f"{col_names_to_plot[j]} distribution.", fontsize=2 * (len(col_names_to_plot[j]) + 1))
+        ax[j].set_xlabel(col_names_to_plot[j])
+        ax[j].set_ylabel('Count')
+    plt.show()
