@@ -231,11 +231,14 @@ def compare_models(dict_list, model_names, sharey, apply_log_mse, apply_log_r2, 
         param_names = list(dict_list[0].keys())
 
     fig, ax = plt.subplots(nrows=2, ncols=5, figsize=(25, 10), sharey=sharey)
-
+    
+    # MSE and R2 rows
     for row_index in range(0, 2):
-
-        for col_index in range(0, 5):
-
+        
+        # Columns for each parameter
+        for col_index in range(0, len(param_names)):
+            
+            # Color-labeled model metrics
             for model_index in range(0, len(model_names)):
                 points_to_plot = []
                 for mode in modes:
@@ -243,7 +246,7 @@ def compare_models(dict_list, model_names, sharey, apply_log_mse, apply_log_r2, 
 
                 ax[row_index, col_index].plot(modes, points_to_plot, label=model_names[model_index])
 
-            # Дообработка графиков MSE
+            # MSE plot post-processing
             if row_index == 0:
                 if apply_log_mse:
                     ax[row_index, col_index].set_yscale('log')
@@ -251,7 +254,7 @@ def compare_models(dict_list, model_names, sharey, apply_log_mse, apply_log_r2, 
                 ax[row_index, col_index].set_ylabel('MSE Loss')
                 ax[row_index, col_index].set_title(f"{param_names[col_index]} MSE Loss", fontsize=2 * 6)
 
-            # Дообработка графиков R2
+            # R2 plot post-processing
             if row_index == 1:
                 if apply_log_r2:
                     ax[row_index, col_index].set_yscale('log')
