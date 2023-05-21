@@ -207,7 +207,7 @@ def compare_models(dict_list, model_names, sharey, apply_log_mse, apply_log_r2, 
     ----------
     dict_list : list of dict
         List that contains dictionaries with metrics. For instance, [{'M1 Eigenfrequency (Hz)': [0.01, 0.95], ...}, ... ].
-    model_names " list of str
+    model_names : list of str
         List that contains names of models. Order of these name should correspond to the order of dictionaries in dict_list.
     sharey : bool or {'none', 'all', 'row', 'col'} (default 'row').
         Controls sharing of properties among x (*sharex*) or y (*sharey*) axes:
