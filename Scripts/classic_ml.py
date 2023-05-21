@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from time import time
 
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 from sklearn.metrics import r2_score, mean_squared_error
 
