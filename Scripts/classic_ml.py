@@ -54,10 +54,11 @@ def calculate_metrics(y_true, y_pred, param_names=None):
         Dictionary that contains param name as a key and list of 2 values (MSE and R2 metrics) for that param. For instance, {'M1 Eigenfrequency (Hz)': [0.01, 0.95]}
     """
     output_dict = {}
-    y_true = y_true.values
-
+    
     if param_names is None:
         param_names = list(y_true.columns)
+    
+    y_true = y_true.values
 
     for index, name in enumerate(param_names):
         output_dict[name] = []
