@@ -83,10 +83,10 @@ def plot_metrics(output_dict, apply_log_mse, apply_log_r2, param_names=None):
     apply_log_r2 : bool
         If True, y-axis of all R2 metric plots will be log-scaled.
     param_names : list of str or None
-        Parameter names (format `M{mode} Param_name`) to be used for metrics calculations. If None, uses all params in output_dict.keys() (defaul None).
+        Parameter names (format `Param_name` without mode number specification) to be used for metrics calculations. If None, uses all params in output_dict.keys() (defaul None).
     """
     if param_names is None:
-        param_names = list(output_dict.keys())
+        param_names = ['Eigenfrequency (Hz)', 'Quality factor', 'Effective mass (kg)', 'TED (W)', 'Noise (kg^2/s^3)']
 
     fig, ax = plt.subplots(nrows=2,
                            ncols=len(param_names),
@@ -146,10 +146,10 @@ def plot_metrics_dense(output_dict, apply_log_mse, apply_log_r2, param_names=Non
     apply_log_r2 : bool
         If True, y-axis of all R2 metric plots will be log-scaled.
     param_names : list of str or None
-        Parameter names (format `M{mode} Param_name`) to be used for metrics calculations. If None, uses all params in output_dict.keys() (defaul None).
+        Parameter names (format `Param_name` without mode number specification) to be used for metrics calculations. If None, uses all params in output_dict.keys() (defaul None).
     """
     if param_names is None:
-        param_names = list(output_dict.keys())
+        param_names = ['Eigenfrequency (Hz)', 'Quality factor', 'Effective mass (kg)', 'TED (W)', 'Noise (kg^2/s^3)']
 
     fig, ax = plt.subplots(nrows=1,
                            ncols=2,
@@ -222,13 +222,13 @@ def compare_models(dict_list, model_names, sharey, apply_log_mse, apply_log_r2, 
     modes : list of int
         List that contains mode numbers (default [1, 2, 3, 4]).
     param_names : list of str or None
-        Parameter names (format `M{mode} Param_name`) to be used for metrics calculations. If None, uses all params in output_dict.keys() (defaul None).
+        Parameter names (`M{mode} Param_name` without mode number specification) to be used for metrics calculations. If None, uses all params in output_dict.keys() (defaul None).
     """
     if modes is None:
         modes = [1, 2, 3, 4]
 
     if param_names is None:
-        param_names = list(dict_list[0].keys())
+        param_names = ['Eigenfrequency (Hz)', 'Quality factor', 'Effective mass (kg)', 'TED (W)', 'Noise (kg^2/s^3)']
 
     fig, ax = plt.subplots(nrows=2, ncols=5, figsize=(25, 10), sharey=sharey)
     
