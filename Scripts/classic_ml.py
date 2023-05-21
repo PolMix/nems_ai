@@ -197,7 +197,7 @@ def plot_metrics_dense(output_dict, apply_log_mse, apply_log_r2, param_names=Non
     plt.show()
 
 
-def compare_models(dict_list, model_names, sharey, apply_log_mse, apply_log_r2, modes=None, param_names=None):
+def compare_models(dict_list, model_names, apply_log_mse, apply_log_r2, sharey='row', modes=None, param_names=None):
     """
     Plots metrics of specified models on the same plot. Format of plotting: (2 x 5) plots.
     Rows: MSE and R2 metrics, columns: parameters (e.g. 'Eigenfrequency (Hz)', 'Quality factor', ... )
@@ -209,16 +209,16 @@ def compare_models(dict_list, model_names, sharey, apply_log_mse, apply_log_r2, 
         List that contains dictionaries with metrics. For instance, [{'M1 Eigenfrequency (Hz)': [0.01, 0.95], ...}, ... ].
     model_names : list of str
         List that contains names of models. Order of these name should correspond to the order of dictionaries in dict_list.
+    apply_log_mse : bool
+        If True, y-axis of all MSE metric plots will be log-scaled.
+    apply_log_r2 : bool
+        If True, y-axis of all R2 metric plots will be log-scaled.
     sharey : bool or {'none', 'all', 'row', 'col'} (default 'row').
         Controls sharing of properties among x (*sharex*) or y (*sharey*) axes:
         - True or 'all': x- or y-axis will be shared among all subplots.
         - False or 'none': each subplot x- or y-axis will be independent.
         - 'row': each subplot row will share an x- or y-axis.
         - 'col': each subplot column will share an x- or y-axis.
-    apply_log_mse : bool
-        If True, y-axis of all MSE metric plots will be log-scaled.
-    apply_log_r2 : bool
-        If True, y-axis of all R2 metric plots will be log-scaled.
     modes : list of int
         List that contains mode numbers (default [1, 2, 3, 4]).
     param_names : list of str or None
