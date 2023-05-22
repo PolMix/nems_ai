@@ -317,7 +317,7 @@ def train_mlp(model, train_loader, val_loader, criterion, optimizer, scheduler, 
 
         # Metrics on val
         model.eval()
-        output_dict_val = calculate_val_metrics_mlp(model, val_loader, criterion)
+        output_dict_val = calculate_val_metrics_mlp(model=model, data_loader=val_loader, param_names=param_names)
 
         scheduler.step(output_dict_val[plot_param][0])
 
@@ -404,7 +404,7 @@ def train_branched(model, train_loader, val_loader, criterion, optimizer, schedu
             pp.add_scalar('R2_train', output_dict[plot_param][1].cpu().detach().numpy())
 
         model.eval()
-        output_dict_val = calculate_val_metrics_branched(model, val_loader, criterion)
+        output_dict_val = calculate_val_metrics_branched(model=model, data_loader=val_loader, param_names=param_names)
 
         scheduler.step(output_dict_val[plot_param][0])
 
