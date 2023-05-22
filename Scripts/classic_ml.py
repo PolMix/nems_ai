@@ -291,7 +291,7 @@ def plot_distribution(df, param_name, log_scale, modes=None):
     col_names_to_plot = []
     
     for mode in modes:
-        col_names_to_plot.append(f"M{mode} ' + 'param_name'")
+        col_names_to_plot.append(f'M{mode} ' + 'param_name')
     
     fig, ax = plt.subplots(nrows=1, ncols=len(col_names_to_plot), figsize=(5 * len(col_names_to_plot), 5))
     for j in range(0, len(col_names_to_plot)):
