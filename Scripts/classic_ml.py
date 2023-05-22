@@ -69,7 +69,7 @@ def calculate_metrics(y_true, y_pred, param_names=None):
     return output_dict
 
 
-def plot_metrics(output_dict, apply_log_mse, apply_log_r2, param_names=None):
+def plot_metrics(output_dict, apply_log_mse, apply_log_r2, font_size=1, param_names=None):
     """
     Plots metrics from dictionary. Format of plotting: (2 x number of parameters (not considering different modes) plots.
     Rows: MSE and R2 metrics, columns: parameters (e.g. 'Eigenfrequency (Hz)', 'Quality factor', ...).
@@ -83,6 +83,8 @@ def plot_metrics(output_dict, apply_log_mse, apply_log_r2, param_names=None):
         If True, y-axis of all MSE metric plots will be log-scaled.
     apply_log_r2 : bool
         If True, y-axis of all R2 metric plots will be log-scaled.
+    font_size : float
+        Coefficient for resizing font (default 1).
     param_names : list of str or None
         Parameter names (format `Param_name` without mode number specification) to be used for metrics calculations. If None, uses all params in output_dict.keys() (defaul None).
     """
@@ -103,7 +105,7 @@ def plot_metrics(output_dict, apply_log_mse, apply_log_r2, param_names=None):
             points_to_plot.append(output_dict[f'M{mode_number} {name}'][0])
 
         ax[0, index].plot(modes, points_to_plot)
-        ax[0, index].set_title(f"{name} MSE Loss.", fontsize=2 * (len(param_names) + 1))
+        ax[0, index].set_title(f"{name} MSE Loss.", fontsize=2 * font_size * (len(param_names) + 1))
         ax[0, index].set_xlabel('Mode number')
         ax[0, index].set_ylabel('MSE Loss')
         ax[0, index].set_xticks(modes)
@@ -120,7 +122,7 @@ def plot_metrics(output_dict, apply_log_mse, apply_log_r2, param_names=None):
             points_to_plot.append(output_dict[f'M{mode_number} {name}'][1])
 
         ax[1, index].plot(modes, points_to_plot)
-        ax[1, index].set_title(f"{name} R2 Score.", fontsize=2 * (len(param_names) + 1))
+        ax[1, index].set_title(f"{name} R2 Score.", fontsize=2 * font_size * (len(param_names) + 1))
         ax[1, index].set_xlabel('Mode number')
         ax[1, index].set_ylabel('R2 Score')
         ax[1, index].set_xticks(modes)
@@ -132,7 +134,7 @@ def plot_metrics(output_dict, apply_log_mse, apply_log_r2, param_names=None):
     plt.show()
 
 
-def plot_metrics_dense(output_dict, apply_log_mse, apply_log_r2, param_names=None):
+def plot_metrics_dense(output_dict, apply_log_mse, apply_log_r2, font_size=1, param_names=None):
     """
     Plots metrics from dictionary. Format of plotting: (1 x 2) plots.
     Columns: MSE and R2 metrics.
@@ -146,6 +148,8 @@ def plot_metrics_dense(output_dict, apply_log_mse, apply_log_r2, param_names=Non
         If True, y-axis of all MSE metric plots will be log-scaled.
     apply_log_r2 : bool
         If True, y-axis of all R2 metric plots will be log-scaled.
+    font_size : float
+        Coefficient for resizing font (default 1).
     param_names : list of str or None
         Parameter names (format `Param_name` without mode number specification) to be used for metrics calculations. If None, uses all params in output_dict.keys() (defaul None).
     """
@@ -169,7 +173,7 @@ def plot_metrics_dense(output_dict, apply_log_mse, apply_log_r2, param_names=Non
     if apply_log_mse:
         ax[0].set_yscale('log')
 
-    ax[0].set_title("MSE Loss.", fontsize=2 * 3)
+    ax[0].set_title("MSE Loss.", fontsize=2 * 3 * font_size)
     ax[0].set_xlabel('Mode number')
     ax[0].set_ylabel('MSE Loss')
     ax[0].set_xticks(modes)
@@ -188,7 +192,7 @@ def plot_metrics_dense(output_dict, apply_log_mse, apply_log_r2, param_names=Non
     if apply_log_r2:
         ax[1].set_yscale('log')
 
-    ax[1].set_title("R2 Score.", fontsize=2 * 3)
+    ax[1].set_title("R2 Score.", fontsize=2 * 3 * font_size)
     ax[1].set_xlabel('Mode number')
     ax[1].set_ylabel('R2 Score')
     ax[1].set_xticks(modes)
@@ -198,7 +202,7 @@ def plot_metrics_dense(output_dict, apply_log_mse, apply_log_r2, param_names=Non
     plt.show()
 
 
-def compare_models(dict_list, model_names, apply_log_mse, apply_log_r2, sharey='row', modes=None, param_names=None):
+def compare_models(dict_list, model_names, apply_log_mse, apply_log_r2, font_size=1, sharey='row', modes=None, param_names=None):
     """
     Plots metrics of specified models on the same plot. Format of plotting: (2 x 5) plots.
     Rows: MSE and R2 metrics, columns: parameters (e.g. 'Eigenfrequency (Hz)', 'Quality factor', ... )
@@ -214,6 +218,8 @@ def compare_models(dict_list, model_names, apply_log_mse, apply_log_r2, sharey='
         If True, y-axis of all MSE metric plots will be log-scaled.
     apply_log_r2 : bool
         If True, y-axis of all R2 metric plots will be log-scaled.
+    font_size : float
+        Coefficient for resizing font (default 1).
     sharey : bool or {'none', 'all', 'row', 'col'} (default 'row').
         Controls sharing of properties among x (*sharex*) or y (*sharey*) axes:
         - True or 'all': x- or y-axis will be shared among all subplots.
@@ -253,7 +259,7 @@ def compare_models(dict_list, model_names, apply_log_mse, apply_log_r2, sharey='
                     ax[row_index, col_index].set_yscale('log')
 
                 ax[row_index, col_index].set_ylabel('MSE Loss')
-                ax[row_index, col_index].set_title(f"{param_names[col_index]} MSE Loss", fontsize=2 * 6)
+                ax[row_index, col_index].set_title(f"{param_names[col_index]} MSE Loss", fontsize=2 * 6 * font_size)
 
             # R2 plot post-processing
             if row_index == 1:
@@ -261,7 +267,7 @@ def compare_models(dict_list, model_names, apply_log_mse, apply_log_r2, sharey='
                     ax[row_index, col_index].set_yscale('log')
 
                 ax[row_index, col_index].set_ylabel('R2 Loss')
-                ax[row_index, col_index].set_title(f"{param_names[col_index]} R2 Score", fontsize=2 * 6)
+                ax[row_index, col_index].set_title(f"{param_names[col_index]} R2 Score", fontsize=2 * 6 * font_size)
 
             ax[row_index, col_index].set_xlabel('Mode number')
             ax[row_index, col_index].tick_params(axis='y', labelleft=True)
@@ -271,7 +277,7 @@ def compare_models(dict_list, model_names, apply_log_mse, apply_log_r2, sharey='
     plt.plot()
 
     
-def plot_distribution(df, param_name, log_scale, modes=None):
+def plot_distribution(df, param_name, log_scale, font_size=1, modes=None):
     """
     Plots distribution of specified parameter for resonant modes.
 
@@ -283,6 +289,8 @@ def plot_distribution(df, param_name, log_scale, modes=None):
         Specified parameter name. Note: no need to include mode number in param_name!
     log_scale : bool
         If True, y-axis of all plots will be log-scaled.
+    font_size : float
+        Coefficient for resizing font (default 1).
     modes : list of int
         List that contains mode numbers (default [1, 2, 3, 4]).
     """
@@ -297,7 +305,7 @@ def plot_distribution(df, param_name, log_scale, modes=None):
     fig, ax = plt.subplots(nrows=1, ncols=len(col_names_to_plot), figsize=(5 * len(col_names_to_plot), 5))
     for j in range(0, len(col_names_to_plot)):
         sns.histplot(df.loc[:, col_names_to_plot[j]], ax=ax[j], log_scale=log_scale)
-        ax[j].set_title(f"{col_names_to_plot[j]} distribution.", fontsize=2 * (len(col_names_to_plot[j]) + 1))
+        ax[j].set_title(f"{col_names_to_plot[j]} distribution.", fontsize=2 * font_size * (len(col_names_to_plot[j]) + 1))
         ax[j].set_xlabel(col_names_to_plot[j])
         ax[j].set_ylabel('Count')
     plt.show()
