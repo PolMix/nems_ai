@@ -3,6 +3,7 @@ import numpy as np
 from time import time
 
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 from sklearn.metrics import r2_score, mean_squared_error
 
@@ -271,7 +272,7 @@ def compare_models(dict_list, model_names, apply_log_mse, apply_log_r2, sharey='
 
     
 def plot_distribution(df, param_name, log_scale, modes=None):
-        """
+    """
     Plots distribution of specified parameter for resonant modes.
 
     Parameters
@@ -287,11 +288,11 @@ def plot_distribution(df, param_name, log_scale, modes=None):
     """
     if modes is None:
         modes = [1, 2, 3, 4]
-        
+
     col_names_to_plot = []
     
     for mode in modes:
-        col_names_to_plot.append(f'M{mode} ' + 'param_name')
+        col_names_to_plot.append(f'M{mode} {param_name}')
     
     fig, ax = plt.subplots(nrows=1, ncols=len(col_names_to_plot), figsize=(5 * len(col_names_to_plot), 5))
     for j in range(0, len(col_names_to_plot)):
