@@ -559,8 +559,8 @@ def train_tandem(model_inverse, model_forward,
             # Obtaining predictions of inverse and then forward model predictions
             output_inverse = model_inverse(y)
 
-            with torch.no_grad():
-                output_forward = model_forward(output_inverse)
+            
+            output_forward = model_forward(output_inverse)
 
             loss = criterion(output_forward, y)  # calculating loss
             loss.backward()
