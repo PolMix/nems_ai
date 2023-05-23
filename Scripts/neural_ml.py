@@ -853,25 +853,8 @@ def get_readable_metrics_mlp(model, data_loader, param_names=None):
     output_dict : dict
         Dictionary that contains param name as a key and list of 2 values (MSE and R2 metrics) for that param. For instance, {'M1 Eigenfrequency (Hz)': [0.01, 0.95]}
     """
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
-    if param_names is not None:
-        num_pars_y = len(param_names)
-    else:
-        num_pars_y = 20
-
-    y_log = torch.empty(size=[0, num_pars_y]).to(device)
-    output_log = torch.empty(size=[0, num_pars_y]).to(device)
-
-    for batch in data_loader:
-        x, y = batch
-        x, y = x.to(device), y.to(device)
-
-        output = model(x)
-        y_log = torch.cat((y_log, y), dim=0)
-        output_log = torch.cat((output_log, output), dim=0)
-
-    output_dict = calculate_metrics_torch(y_true=y_log, y_pred=output_log, param_names=param_names)
+    output_dict = calculate_val_metrics_mlp(model, data_loader, param_names)
 
     for name in output_dict.keys():
         for index in range(0, len(output_dict[name])):
