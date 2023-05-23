@@ -46,6 +46,57 @@ def calculate_metrics_torch(y_true, y_pred, param_names=None):
     return output_dict
 
 
+def get_elapsed_time(model, data_loader, num_samples=200, param_names_x=None):
+    """
+    Returns time elapsed during evaluation.
+
+    Parameters
+    ----------
+    model : model object
+        Trained model evaluation time to be measured for.
+    data_loader : torch.utils.data.DataLoader
+        Validation dataset dataloader.
+    num_samples : int
+        Number of samples to be used for evaluation (default 200).
+    param_names_x : list of str or None
+        X-parameter names (format `Parameter`) to be used for metrics calculations. If None, uses 8 convenient params (default None).
+
+    Returns
+    ----------
+    elapsed_time : float
+        Elapsed time.
+    """
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
+    if param_names_x is not None:
+        num_pars_x = len(param_names_x)
+    else:
+        param_names_x = ['Beam length (um)', 'Beam width (nm)',
+                         'Thickness_1 (nm)', 'Thickness_2 (nm)',
+                         'Temperature (K)', 'Distance (nm)',
+                         'Gate voltage (V)', 'Pretension (Pa)']
+        num_pars_x = len(param_names_x)
+
+    samples_x = torch.empty(size=[0, num_pars_x]).to(device)
+    for batch in data_loader:
+        x, y = batch
+        x, y = x.to(device), y.to(device)
+        samples_x = torch.cat((samples_x, x), dim=0)
+
+        if samples_x.shape[0] > num_samples:
+            break
+
+    samples_x = samples_x[:200, :]
+
+    time_start = time()
+    _ = model(samples_x)
+    time_stop = time()
+
+    elapsed_time = time_stop - time_start
+
+    return elapsed_time
+
+
 class ProgressPlotter:
     def __init__(self) -> None:
         """
