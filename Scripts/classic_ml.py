@@ -303,6 +303,10 @@ def plot_distribution(df, param_name, log_scale, font_size=1, modes=None):
         col_names_to_plot.append(f'M{mode} {param_name}')
     
     fig, ax = plt.subplots(nrows=1, ncols=len(col_names_to_plot), figsize=(5 * len(col_names_to_plot), 5))
+    
+    if len(col_names_to_plot) == 1:
+        ax = [ax]
+    
     for j in range(0, len(col_names_to_plot)):
         sns.histplot(df.loc[:, col_names_to_plot[j]], ax=ax[j], log_scale=log_scale)
         ax[j].set_title(f"{col_names_to_plot[j]} distribution.", fontsize=2 * font_size * (len(col_names_to_plot[j]) + 1))
