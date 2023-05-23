@@ -204,7 +204,7 @@ class Scaler:
         y : pd.DataFrame
             Transformed Y-data.
         """
-        for mode_number in range(1, 5):
+        for mode_number in range(1, self.mode_number):
             for param in self.log_params:
                 y.loc[:, f'M{mode_number} ' + param] = np.log10(y.loc[:, f'M{mode_number} ' + param])
 
