@@ -306,7 +306,7 @@ def calculate_val_metrics_branched_sep(model, data_loader, output_coeffs, param_
 @torch.inference_mode()
 def calculate_val_metrics_tandem(model_inverse, model_forward, data_loader, param_names_x=None, param_names_y=None):
     """
-    Calculates MSE and R2 metrics on a validation dataset for branched separate network.
+    Calculates MSE and R2 metrics on a validation dataset for tandem network.
 
     Parameters
     ----------
@@ -361,6 +361,78 @@ def calculate_val_metrics_tandem(model_inverse, model_forward, data_loader, para
 
         # Obtaining predictions of inverse and then forward model predictions
         output_inverse = model_inverse(y)
+        output_forward = model_forward(output_inverse)
+
+        x_log = torch.cat((x_log, x), dim=0)
+        y_log = torch.cat((y_log, y), dim=0)
+        output_inverse_log = torch.cat((output_inverse_log, output_inverse), dim=0)
+        output_forward_log = torch.cat((output_forward_log, output_forward), dim=0)
+
+    output_dict_inverse = calculate_metrics_torch(y_true=x_log, y_pred=output_inverse_log, param_names=param_names_x)
+    output_dict_forward = calculate_metrics_torch(y_true=y_log, y_pred=output_forward_log, param_names=param_names_y)
+
+    return output_dict_inverse, output_dict_forward
+
+
+@torch.inference_mode()
+def calculate_val_metrics_tandem_cond(model_inverse_cond, model_forward, data_loader, param_names_x=None, param_names_y=None):
+    """
+    Calculates MSE and R2 metrics on a validation dataset for conditional tandem network.
+
+    Parameters
+    ----------
+    model_inverse_cond : model object
+        Inverse tandem model that, in addition to convenient Y-data input, has 4 inputs for fixed X-data (temp., distance, voltage and pretension).
+    model_forward : model object
+        Forward tandem model.
+    data_loader : torch.utils.data.DataLoader
+        Validation dataset dataloader.
+    param_names_x : list of str or None
+        X-parameter names (format `Parameter`) to be used for metrics calculations. If None, uses 8 convenient params (default None).
+    param_names_y : list of str or None
+        Y-parameter names (format `M{mode} Param_name`) to be used for metrics calculations. If None, uses 5 convenient params and 4 modes (default None).
+
+    Returns
+    ----------
+    output_dict_inverse : dict
+        Dictionary that contains MSE and R2 metrics for the inverse model output (e.g. X-data).
+    output_dict_forward : dict
+        Dictionary that contains MSE and R2 metrics for the forward model output (e.g. Y-data).
+    """
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
+    if param_names_x is not None:
+        num_pars_x = len(param_names_x)
+    else:
+        param_names_x = ['Beam length (um)', 'Beam width (nm)',
+                         'Thickness_1 (nm)', 'Thickness_2 (nm)',
+                         'Temperature (K)', 'Distance (nm)',
+                         'Gate voltage (V)', 'Pretension (Pa)']
+        num_pars_x = len(param_names_x)
+
+    if param_names_y is not None:
+        num_pars_y = len(param_names_y)
+    else:
+        num_pars_y = 20
+
+    # Logs for X-data
+    x_log = torch.empty(size=[0, num_pars_x]).to(device)
+    output_inverse_log = torch.empty(size=[0, num_pars_x]).to(device)
+
+    # Logs for Y-data
+    y_log = torch.empty(size=[0, num_pars_y]).to(device)
+    output_forward_log = torch.empty(size=[0, num_pars_y]).to(device)
+
+    model_inverse_cond.eval()
+    model_forward.eval()
+
+    for batch in data_loader:
+        x, y = batch
+        x, y = x.to(device), y.to(device)
+        x_fix = x[:, -4:]   # choose conditional variables
+
+        # Obtaining predictions of inverse and then forward model predictions
+        output_inverse = model_inverse_cond(y, x_fix)
         output_forward = model_forward(output_inverse)
 
         x_log = torch.cat((x_log, x), dim=0)
@@ -623,6 +695,119 @@ def train_tandem(model_inverse, model_forward,
                                                                                                 train_loader, param_names_x, param_names_y)
             output_dict_val_inverse, output_dict_val_forward = calculate_val_metrics_tandem(model_inverse, model_forward,
                                                                                             val_loader, param_names_x, param_names_y)
+
+        # Scheduler step
+        if plot_param in param_names_x:
+            scheduler.step(output_dict_val_inverse[plot_param][0])
+        elif plot_param in param_names_y:
+            scheduler.step(output_dict_val_forward[plot_param][0])
+
+        # Logging
+        if epoch % 10 == 0:
+            if plot_param in param_names_x:
+                pp.add_scalar('MSE_train', output_dict_train_inverse[plot_param][0].cpu().detach().numpy())
+                pp.add_scalar('R2_train', output_dict_train_inverse[plot_param][1].cpu().detach().numpy())
+                pp.add_scalar('MSE_val', output_dict_val_inverse[plot_param][0].cpu().detach().numpy())
+                pp.add_scalar('R2_val', output_dict_val_inverse[plot_param][1].cpu().detach().numpy())
+
+            elif plot_param in param_names_y:
+                pp.add_scalar('MSE_train', output_dict_train_forward[plot_param][0].cpu().detach().numpy())
+                pp.add_scalar('R2_train', output_dict_train_forward[plot_param][1].cpu().detach().numpy())
+                pp.add_scalar('MSE_val', output_dict_val_forward[plot_param][0].cpu().detach().numpy())
+                pp.add_scalar('R2_val', output_dict_val_forward[plot_param][1].cpu().detach().numpy())
+
+                # Displaying current results
+            pp.display([['MSE_train', 'MSE_val'], ['R2_train', 'R2_val']])
+    return pp
+
+
+def train_tandem_cond(model_inverse_cond, model_forward,
+                      train_loader, val_loader,
+                      criterion, optimizer, scheduler,
+                      num_epochs=100, param_names_x=None, param_names_y=None,
+                      plot_param='M1 Eigenfrequency (Hz)'):
+    """
+    Trains conditional inverse model in tandem network.
+
+    Parameters
+    ----------
+    model_inverse_cond : model object
+        Inverse tandem model that, in addition to convenient Y-data input, has 4 inputs for fixed X-data (temp., distance, voltage and pretension).
+    model_forward : model object
+        Forward tandem model.
+    train_loader : torch.utils.data.DataLoader
+        Train dataset dataloader.
+    val_loader : torch.utils.data.DataLoader
+        Validation dataset dataloader.
+    criterion : loss function object
+    optimizer : optimizer object
+    scheduler : scheduler object
+    num_epochs : int
+        Number of training epochs (default 100).
+    param_names_x : list of str or None
+        X-parameter names (format `Parameter`) to be used for metrics calculations. If None, uses 8 convenient params (default None).
+    param_names_y : list of str or None
+        Y-parameter names (format `M{mode} Param_name`) to be used for metrics calculations. If None, uses 5 convenient params and 4 modes (default None).
+    plot_param : str
+        Parameter name for which MSE and R2 metrics will be plotted (default 'M1 Eigenfrequency (Hz)').
+
+    Returns
+    ----------
+    pp : ProgressPlotter object
+        Class object that contains history dict for the specified `plot_param`.
+    """
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
+    if param_names_x is not None:
+        num_pars_x = len(param_names_x)
+    else:
+        param_names_x = ['Beam length (um)', 'Beam width (nm)',
+                         'Thickness_1 (nm)', 'Thickness_2 (nm)',
+                         'Temperature (K)', 'Distance (nm)',
+                         'Gate voltage (V)', 'Pretension (Pa)']
+        num_pars_x = len(param_names_x)
+
+    if param_names_y is not None:
+        num_pars_y = len(param_names_y)
+    else:
+        num_pars_y = 20
+
+    pp = ProgressPlotter()
+
+    model_forward.eval()
+
+    for epoch in range(num_epochs):
+
+        model_inverse_cond.train()
+
+        for batch in train_loader:  # Training inverse model
+            x, y = batch
+            x, y = x.to(device), y.to(device)
+            x_fix = x[:, -4:]
+            optimizer.zero_grad()
+
+            # Obtaining predictions of inverse and then forward model predictions
+            output_inverse = model_inverse_cond(y, x_fix)
+
+            output_forward = model_forward(output_inverse)
+
+            loss = criterion(output_forward, y)  # calculating loss
+            loss += 1e3 * criterion(output_inverse[:, -4:], x_fix)
+            loss.backward()
+            optimizer.step()
+
+        # Calculating MSE and R2 metrics on train and val loaders
+        with torch.no_grad():
+            output_dict_train_inverse, output_dict_train_forward = calculate_val_metrics_tandem_cond(model_inverse,
+                                                                                                     model_forward,
+                                                                                                     train_loader,
+                                                                                                     param_names_x,
+                                                                                                     param_names_y)
+            output_dict_val_inverse, output_dict_val_forward = calculate_val_metrics_tandem_cond(model_inverse,
+                                                                                                 model_forward,
+                                                                                                 val_loader,
+                                                                                                 param_names_x,
+                                                                                                 param_names_y)
 
         # Scheduler step
         if plot_param in param_names_x:
