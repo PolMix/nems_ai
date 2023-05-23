@@ -19,10 +19,8 @@
 В данном разделе содержатся результаты применения следующих моделей:
 - `LinearRegressor`
 - `RandomForestRegressor`
-- `TabNetRegressor`
-- `XGBRegressor`
+- `TabNetRegressor` + `Optuna`
 - `XGBRegressor` + `Optuna`
-- `XGBRegressor` + sklearn `Cross Validation`
 - `XGBRegressor` + custom `Cross Validation`
 
 а также дополнительно визуализируется работа самодельного скейлера данных для контроля качества его работы.
