@@ -46,9 +46,9 @@ def calculate_metrics_torch(y_true, y_pred, param_names=None):
     return output_dict
 
 
-def get_elapsed_time(model, data_loader, num_samples=200, param_names_x=None):
+def get_elapsed_time_mlp(model, data_loader, num_samples=200, param_names_x=None):
     """
-    Returns time elapsed during evaluation.
+    Returns time elapsed during evaluation using fully connected network.
 
     Parameters
     ----------
