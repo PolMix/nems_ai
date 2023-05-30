@@ -737,7 +737,7 @@ def train_tandem_cond(model_inverse_cond, model_forward,
     Parameters
     ----------
     model_inverse_cond : model object
-        Inverse tandem model that, in addition to convenient Y-data input, has 4 inputs for fixed X-data (temp., distance, voltage and pretension).
+        Inverse tandem model that, in addition to convenient Y-data input, has 4 inputs for fixed X-data (temperature, distance, voltage and pretension).
     model_forward : model object
         Forward tandem model.
     train_loader : torch.utils.data.DataLoader
@@ -799,7 +799,7 @@ def train_tandem_cond(model_inverse_cond, model_forward,
             output_forward = model_forward(output_inverse)
 
             loss = criterion(output_forward, y)  # calculating loss
-            loss += 1e3 * criterion(output_inverse[:, -4:], x_fix)
+            loss += hardener_coeff * criterion(output_inverse[:, -4:], x_fix)
             loss.backward()
             optimizer.step()
 
