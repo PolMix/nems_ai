@@ -520,11 +520,15 @@ def train_mlp(model, train_loader, val_loader, criterion, optimizer, scheduler, 
             pp.add_scalar('R2_val', output_dict_val[plot_param][1].cpu().detach().numpy())
 
         if epoch % 10 == 0:
-            pp.display([['MSE_train','MSE_val'], ['R2_train','R2_val']])
+            pp.display([['MSE_train', 'MSE_val'], ['R2_train', 'R2_val']])
     return pp
 
 
-def train_branched(model, train_loader, val_loader, criterion, optimizer, scheduler, loss_coeffs=None, num_epochs=100, param_names=None, plot_param='M1 Eigenfrequency (Hz)'):
+def train_branched(model,
+                   train_loader, val_loader,
+                   criterion, optimizer, scheduler,
+                   loss_coeffs=None, num_epochs=100, param_names=None,
+                   plot_param='M1 Eigenfrequency (Hz)'):
     """
     Trains branched network.
 
@@ -570,13 +574,13 @@ def train_branched(model, train_loader, val_loader, criterion, optimizer, schedu
         output_log = torch.empty(size=[0, num_pars_y]).to(device)
 
         model.train()
-        for batch in train_loader:     # кусок данных для обучения
+        for batch in train_loader:
             x, y = batch
             x, y = x.to(device), y.to(device)
             optimizer.zero_grad()
 
-            output_1, output_2 = model(x) # загружаем данные в модель
-            loss_1 = criterion(output_1, y) # считаем ошибку
+            output_1, output_2 = model(x)
+            loss_1 = criterion(output_1, y)
             loss_2 = criterion(output_2, y)
             loss = loss_coeffs[0] * loss_1 + loss_coeffs[1] * loss_2
 
@@ -607,8 +611,8 @@ def train_branched(model, train_loader, val_loader, criterion, optimizer, schedu
             pp.add_scalar('R2_val', output_dict_val[plot_param][1].cpu().detach().numpy())
 
         if epoch % 10 == 0:
-            #pp.display([['loss_train', 'loss_val']])
-            pp.display([['MSE_train','MSE_val'], ['R2_train','R2_val']])
+            # pp.display([['loss_train', 'loss_val']])
+            pp.display([['MSE_train', 'MSE_val'], ['R2_train', 'R2_val']])
     return pp
 
 
@@ -682,7 +686,6 @@ def train_tandem(model_inverse, model_forward,
             # Obtaining predictions of inverse and then forward model predictions
             output_inverse = model_inverse(y)
 
-            
             output_forward = model_forward(output_inverse)
 
             loss = criterion(output_forward, y)  # calculating loss
@@ -725,9 +728,11 @@ def train_tandem_cond(model_inverse_cond, model_forward,
                       train_loader, val_loader,
                       criterion, optimizer, scheduler,
                       num_epochs=100, param_names_x=None, param_names_y=None,
-                      plot_param='M1 Eigenfrequency (Hz)'):
+                      hardener_coeff=1e3, plot_param='M1 Eigenfrequency (Hz)'):
     """
     Trains conditional inverse model in tandem network.
+
+    Sometimes when solving the reverse problem (find input by output) it is required to have some of the input parameters to be fixed. These are called conditional ones.
 
     Parameters
     ----------
@@ -748,6 +753,8 @@ def train_tandem_cond(model_inverse_cond, model_forward,
         X-parameter names (format `Parameter`) to be used for metrics calculations. If None, uses 8 convenient params (default None).
     param_names_y : list of str or None
         Y-parameter names (format `M{mode} Param_name`) to be used for metrics calculations. If None, uses 5 convenient params and 4 modes (default None).
+    hardener_coeff : float
+        Multiplier for loss on conditional input (default 1e3).
     plot_param : str
         Parameter name for which MSE and R2 metrics will be plotted (default 'M1 Eigenfrequency (Hz)').
 
@@ -798,12 +805,12 @@ def train_tandem_cond(model_inverse_cond, model_forward,
 
         # Calculating MSE and R2 metrics on train and val loaders
         with torch.no_grad():
-            output_dict_train_inverse, output_dict_train_forward = calculate_val_metrics_tandem_cond(model_inverse,
+            output_dict_train_inverse, output_dict_train_forward = calculate_val_metrics_tandem_cond(model_inverse_cond,
                                                                                                      model_forward,
                                                                                                      train_loader,
                                                                                                      param_names_x,
                                                                                                      param_names_y)
-            output_dict_val_inverse, output_dict_val_forward = calculate_val_metrics_tandem_cond(model_inverse,
+            output_dict_val_inverse, output_dict_val_forward = calculate_val_metrics_tandem_cond(model_inverse_cond,
                                                                                                  model_forward,
                                                                                                  val_loader,
                                                                                                  param_names_x,
@@ -832,6 +839,96 @@ def train_tandem_cond(model_inverse_cond, model_forward,
                 # Displaying current results
             pp.display([['MSE_train', 'MSE_val'], ['R2_train', 'R2_val']])
     return pp
+
+
+def train_branched_wrapped(wrapper,
+                           train_loader, val_loader,
+                           criterion, optimizer, scheduler,
+                           branch_num=2, num_epochs=100, param_names=None,
+                           plot_param='M1 Eigenfrequency (Hz)'):
+    """
+    Trains branch coefficients and neural model in a wrapper model.
+
+    Parameters
+    ----------
+    wrapper : wrapper object
+        Instance of class that contains both trainable loss coefficients and trainable branched model.
+    train_loader : torch.utils.data.DataLoader
+        Train dataset dataloader.
+    val_loader : torch.utils.data.DataLoader
+        Validation dataset dataloader.
+    criterion : loss function object
+    optimizer : optimizer object
+    scheduler : scheduler object
+    branch_num : int
+        Number of branches in neural model inside the wrapper (default 2 as for Branched MLP model).
+    num_epochs : int
+        Number of training epochs (default 100).
+    param_names : list of str or None
+        Y-parameter names (format `Parameter`) to be used for metrics calculations. If None, uses 8 convenient params (default None).
+    plot_param : str
+        Parameter name for which MSE and R2 metrics will be plotted (default 'M1 Eigenfrequency (Hz)').
+
+    Returns
+    ----------
+    pp : ProgressPlotter object
+        Class object that contains history dict for the specified `plot_param`.
+    loss_coeffs : list of float with len = branch_num
+        Optimal loss coefficients.
+    """
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
+    if param_names is not None:
+        num_pars_y = len(param_names)
+    else:
+        num_pars_y = 20
+
+    pp = ProgressPlotter()
+
+    for epoch in range(num_epochs):
+        y_log = torch.empty(size=[0, num_pars_y]).to(device)
+        output_log = torch.empty(size=[0, num_pars_y]).to(device)
+
+        wrapper.train()
+        for batch in train_loader:
+            x, y = batch
+            x, y = x.to(device), y.to(device)
+            optimizer.zero_grad()
+
+            loss, loss_coeffs = wrapper(input=x, target=y)
+
+            with torch.no_grad():
+                output_1, output_2 = wrapper.model(x)  # obtain results for logging
+
+            output = output_2  # long branch is treated as the model output
+
+            y_log = torch.cat((y_log, y), dim=0)
+            output_log = torch.cat((output_log, output), dim=0)
+
+            loss.backward()
+            optimizer.step()
+
+        # Metrics on val_loader
+        output_dict = calculate_metrics_torch(y_true=y_log, y_pred=output_log, param_names=param_names)
+
+        # Logging
+        if epoch % 10 == 0:
+            pp.add_scalar('MSE_train', output_dict[plot_param][0].cpu().detach().numpy())
+            pp.add_scalar('R2_train', output_dict[plot_param][1].cpu().detach().numpy())
+
+        wrapper.eval()
+        output_dict_val = calculate_val_metrics_branched(wrapper.model, val_loader, param_names)
+
+        scheduler.step(output_dict_val[plot_param][0])
+
+        if epoch % 10 == 0:
+            pp.add_scalar('MSE_val', output_dict_val[plot_param][0].cpu().detach().numpy())
+            pp.add_scalar('R2_val', output_dict_val[plot_param][1].cpu().detach().numpy())
+
+        if epoch % 10 == 0:
+            # pp.display([['loss_train', 'loss_val']])
+            pp.display([['MSE_train', 'MSE_val'], ['R2_train', 'R2_val']])
+    return pp, loss_coeffs
 
 
 @torch.inference_mode()
