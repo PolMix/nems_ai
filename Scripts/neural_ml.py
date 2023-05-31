@@ -375,7 +375,7 @@ def calculate_val_metrics_tandem(model_inverse, model_forward, data_loader, para
 
 
 @torch.inference_mode()
-def calculate_val_metrics_tandem_cond(model_inverse_cond, model_forward, data_loader, param_names_x=None, param_names_y=None):
+def calculate_val_metrics_tandem_cond(model_inverse_cond, model_forward, data_loader, fix_indices, param_names_x=None, param_names_y=None):
     """
     Calculates MSE and R2 metrics on a validation dataset for conditional tandem network.
 
@@ -387,6 +387,8 @@ def calculate_val_metrics_tandem_cond(model_inverse_cond, model_forward, data_lo
         Forward tandem model.
     data_loader : torch.utils.data.DataLoader
         Validation dataset dataloader.
+    fix_indices : list of int
+        List that contains indices of fixed parameters in param_names_x.
     param_names_x : list of str or None
         X-parameter names (format `Parameter`) to be used for metrics calculations. If None, uses 8 convenient params (default None).
     param_names_y : list of str or None
@@ -429,7 +431,7 @@ def calculate_val_metrics_tandem_cond(model_inverse_cond, model_forward, data_lo
     for batch in data_loader:
         x, y = batch
         x, y = x.to(device), y.to(device)
-        x_fix = x[:, -4:]   # choose conditional variables
+        x_fix = x[:, fix_indices]   # choose conditional variables
 
         # Obtaining predictions of inverse and then forward model predictions
         output_inverse = model_inverse_cond(y, x_fix)
@@ -725,10 +727,11 @@ def train_tandem(model_inverse, model_forward,
 
 
 def train_tandem_cond(model_inverse_cond, model_forward,
+                      fix_params,
                       train_loader, val_loader,
                       criterion, optimizer, scheduler,
                       num_epochs=100, param_names_x=None, param_names_y=None,
-                      hardener_coeff=1e3, plot_param='M1 Eigenfrequency (Hz)'):
+                      plot_param='M1 Eigenfrequency (Hz)'):
     """
     Trains conditional inverse model in tandem network.
 
@@ -740,6 +743,8 @@ def train_tandem_cond(model_inverse_cond, model_forward,
         Inverse tandem model that, in addition to convenient Y-data input, has 4 inputs for fixed X-data (temperature, distance, voltage and pretension).
     model_forward : model object
         Forward tandem model.
+    fix_params : list of str
+        List that contains param names which are to be fixed.
     train_loader : torch.utils.data.DataLoader
         Train dataset dataloader.
     val_loader : torch.utils.data.DataLoader
@@ -753,8 +758,6 @@ def train_tandem_cond(model_inverse_cond, model_forward,
         X-parameter names (format `Parameter`) to be used for metrics calculations. If None, uses 8 convenient params (default None).
     param_names_y : list of str or None
         Y-parameter names (format `M{mode} Param_name`) to be used for metrics calculations. If None, uses 5 convenient params and 4 modes (default None).
-    hardener_coeff : float
-        Multiplier for loss on conditional input (default 1e3).
     plot_param : str
         Parameter name for which MSE and R2 metrics will be plotted (default 'M1 Eigenfrequency (Hz)').
 
@@ -778,6 +781,8 @@ def train_tandem_cond(model_inverse_cond, model_forward,
         num_pars_y = len(param_names_y)
     else:
         num_pars_y = 20
+    
+    fix_indices = get_fix_indices(fix_params)
 
     pp = ProgressPlotter()
 
@@ -790,7 +795,7 @@ def train_tandem_cond(model_inverse_cond, model_forward,
         for batch in train_loader:  # Training inverse model
             x, y = batch
             x, y = x.to(device), y.to(device)
-            x_fix = x[:, -4:]
+            x_fix = x[:, fix_indices]
             optimizer.zero_grad()
 
             # Obtaining predictions of inverse and then forward model predictions
@@ -799,7 +804,7 @@ def train_tandem_cond(model_inverse_cond, model_forward,
             output_forward = model_forward(output_inverse)
 
             loss = criterion(output_forward, y)  # calculating loss
-            loss += hardener_coeff * criterion(output_inverse[:, -4:], x_fix)
+            loss += criterion(output_inverse[:, fix_indices], x_fix)
             loss.backward()
             optimizer.step()
 
@@ -808,11 +813,13 @@ def train_tandem_cond(model_inverse_cond, model_forward,
             output_dict_train_inverse, output_dict_train_forward = calculate_val_metrics_tandem_cond(model_inverse_cond,
                                                                                                      model_forward,
                                                                                                      train_loader,
+                                                                                                     fix_indices
                                                                                                      param_names_x,
                                                                                                      param_names_y)
             output_dict_val_inverse, output_dict_val_forward = calculate_val_metrics_tandem_cond(model_inverse_cond,
                                                                                                  model_forward,
                                                                                                  val_loader,
+                                                                                                 fix_indices,
                                                                                                  param_names_x,
                                                                                                  param_names_y)
 
@@ -840,6 +847,27 @@ def train_tandem_cond(model_inverse_cond, model_forward,
             pp.display([['MSE_train', 'MSE_val'], ['R2_train', 'R2_val']])
     return pp
 
+
+def get_fix_indices(param_names, fix_params):
+        """
+    Returns indices of specified parameter names in the list.
+    
+    Parameters
+    ----------
+    param_names : list of str
+        List containing all param names.
+    fix_params : list of str or None
+        List containing fixed param names.
+
+    Returns
+    ----------
+    fix_indices : list of int
+        Indies of fix_params elements occurencies in param_names list.
+    """
+    fix_indices = [i for i, x in enumerate(param_names) if x in fix_params]
+    
+    return fix_indices
+        
 
 def train_branched_wrapped(wrapper,
                            train_loader, val_loader,
