@@ -587,7 +587,7 @@ def train_branched(model,
             loss = loss_coeffs[0] * loss_1 + loss_coeffs[1] * loss_2
 
             # output = (output_1 * 0.5).add(output_2 * 0.5) - uncomment if you want to make experiments with the model outputs
-            output = output_2 # long branch is the output
+            output = output_2  # long branch is the output
 
             y_log = torch.cat((y_log, y), dim=0)
             output_log = torch.cat((output_log, output), dim=0)
@@ -849,7 +849,7 @@ def train_tandem_cond(model_inverse_cond, model_forward,
 
 
 def get_fix_indices(param_names, fix_params):
-        """
+    """
     Returns indices of specified parameter names in the list.
     
     Parameters
@@ -865,14 +865,14 @@ def get_fix_indices(param_names, fix_params):
         Indies of fix_params elements occurencies in param_names list.
     """
     fix_indices = [i for i, x in enumerate(param_names) if x in fix_params]
-    
+
     return fix_indices
         
 
 def train_branched_wrapped(wrapper,
                            train_loader, val_loader,
                            criterion, optimizer, scheduler,
-                           branch_num=2, num_epochs=100, param_names=None,
+                           num_epochs=100, param_names=None,
                            plot_param='M1 Eigenfrequency (Hz)'):
     """
     Trains branch coefficients and neural model in a wrapper model.
