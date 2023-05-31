@@ -813,7 +813,7 @@ def train_tandem_cond(model_inverse_cond, model_forward,
             output_dict_train_inverse, output_dict_train_forward = calculate_val_metrics_tandem_cond(model_inverse_cond,
                                                                                                      model_forward,
                                                                                                      train_loader,
-                                                                                                     fix_indices
+                                                                                                     fix_indices,
                                                                                                      param_names_x,
                                                                                                      param_names_y)
             output_dict_val_inverse, output_dict_val_forward = calculate_val_metrics_tandem_cond(model_inverse_cond,
