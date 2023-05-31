@@ -782,7 +782,7 @@ def train_tandem_cond(model_inverse_cond, model_forward,
     else:
         num_pars_y = 20
     
-    fix_indices = get_fix_indices(fix_params)
+    fix_indices = get_fix_indices(param_names_x, fix_params)
 
     pp = ProgressPlotter()
 
