@@ -28,7 +28,7 @@
 #### `Fully Connected Network`, в которую входят несколько слоев `nn.Linear` и `nn.BatchNorm1d`.
 
 #### `Branched Fully Connected Network`.
-<img src="https://user-images.githubusercontent.com/112618861/229566010-5db2e9ec-8832-443f-8a31-ee2826920819.png" width="300" height="300">
+<img src="https://user-images.githubusercontent.com/112618861/229566010-5db2e9ec-8832-443f-8a31-ee2826920819.png" width="400" height="400">
 (идея архитектуры нейросети и картинка взяты из работы Michelucci, Umberto, and Francesca Venturini. "Multi-task learning for multi-dimensional regression: Application to luminescence sensing." Applied Sciences 9.22 (2019): 4748., https://doi.org/10.3390/app9224748)
 
 Сеть также состоит из слоев `nn.Linear` и `nn.BatchNorm1d`. 
@@ -38,13 +38,15 @@
 - Длинная ветвь  (network_branches): для каждого из параметров создается несколько отдельных слоев `nn.Linear` и `nn.BatchNorm1d`. В конце каждой такой длинной ветви находится слой `nn.Linear(..., out_features=1, ...)`, на выходе которого получается тензор размера `(batch_size, num_pars_y)` (по сути, предсказание одного параметра).
 
 Особенностью сети является алгоритм вычисления ошибки вычислений и алгоритм вычисления конечного результата. Общая ошибка вычислений складывается из суммы ошибок каждой из ветвей (короткой + всех длинных) по формуле:
-$$ Loss_{total} = alpha_{long_branch} \; Loss_{long_branch} + alpha_{long_branch} \; Loss_{long_branch} $$
-а конечный результат вычисляется как усреднение выходов короткой и длинных ветвей с весами. Все рассматриваемые веса являются гиперпараметрами.
+$$ Loss_{total} = \alpha_{short branch} \; Loss_{short branch} + \alpha_{long branch} \; Loss_{long branch} $$
+а конечный результат может быть вычислен как усреднение выходов короткой и длинных ветвей с весами:
+$$ output = \beta_{short branch} output_{short branch} + \beta_{short branch} output_{short branch}
+(в экспериментах чаще всего брались $\beta_{short branch} = 0$ и $\beta_{long branch} = 1$). Все рассматриваемые веса являются гиперпараметрами.
 
 #### `Branched Separate Fully Connected Network`. 
 Сеть построена по такому же принципу, как и предыдущая, за исключением метода подсчета ошибки вычислении - тут складывается суммы ошибок каждой из ветвей (короткой + всех длинных) по формуле:
-$$ Loss_{total} = \sum_{n = 0}^{N_{branches}} alpha_{n} \; Loss_{n} $$
-то есть для каждой из длинных ветвей можно менять свои веса.
+$$ Loss_{total} = \alpha_{short branch) \; Loss_{short branch} + \sum_{n = 0}^{N} \alpha_{n} \; Loss_{n} $$
+где $N$ - число длинных ветвей (по сути, число предсказываемых параметров). Таким образом, для каждой из длинных ветвей можно менять свои веса.
 
 #### `Wrapped Branched Fully Connected Network`
-В данная сеть является модернизированной версии сети `Branched Fully Connected`.
+В данная сеть является модернизированной версии сети `Branched Fully Connected`. В модернизированной версии идет обучение не только самой модели, но и двух коэффициентов перед потерями короткой и длинной ветвью $\alpha_{long_branch}$ и $\alpha_{short_branch}$. Обучение этих параметров идет таким образом, чтобы 
