@@ -28,7 +28,7 @@
 #### `Fully Connected Network`, в которую входят несколько слоев `nn.Linear` и `nn.BatchNorm1d`.
 
 #### `Branched Fully Connected Network`.
-<img src="https://user-images.githubusercontent.com/112618861/229566010-5db2e9ec-8832-443f-8a31-ee2826920819.png" | width="200" height="200">
+<img src="https://user-images.githubusercontent.com/112618861/229566010-5db2e9ec-8832-443f-8a31-ee2826920819.png" width="200" height="200">
 (идея архитектуры нейросети и картинка взяты из работы Michelucci, Umberto, and Francesca Venturini. "Multi-task learning for multi-dimensional regression: Application to luminescence sensing." Applied Sciences 9.22 (2019): 4748., https://doi.org/10.3390/app9224748)
 
 Сеть также состоит из слоев `nn.Linear` и `nn.BatchNorm1d`. 
