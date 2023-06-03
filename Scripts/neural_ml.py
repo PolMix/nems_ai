@@ -986,3 +986,68 @@ def get_readable_metrics_mlp(model, data_loader, param_names=None):
             output_dict[name][index] = output_dict[name][index].item()
 
     return output_dict
+
+
+def compare_models(dict_list, model_names, param_names, apply_log_mse, apply_log_r2, modes=None, sharey='row'):
+    """
+    Plots metrics of specified models on one plot.
+
+    Parameters
+    ----------
+    dict_list : list of dict
+        List that contains dictionaries of MSE and R2 metrics for all the models in `model_names` (order must be the same).
+    model_names : list of str
+        List that contains names of models (order must be the same).
+    param_names : list of str or None
+        Parameter names (format `M{mode} Param_name`) to be used for plotting metrics. If None, uses 5 convenient params and 4 modes (default None).
+    apply_log_mse : bool
+        If True, y-axis of all MSE metric plots will be log-scaled.
+    apply_log_r2 : bool
+        If True, y-axis of all R2 metric plots will be log-scaled.
+    modes : list of int
+        List that contains specified numbers of modes to be plotted (default [1, 2, 3, 4]).
+    sharey : bool or {'none', 'all', 'row', 'col'} (default 'row').
+        Controls sharing of properties among x (*sharex*) or y (*sharey*) axes:
+        - True or 'all': x- or y-axis will be shared among all subplots.
+        - False or 'none': each subplot x- or y-axis will be independent.
+        - 'row': each subplot row will share an x- or y-axis.
+        - 'col': each subplot column will share an x- or y-axis.
+    """
+    if modes is None:
+        modes = [1, 2, 3, 4]
+
+    fig, ax = plt.subplots(nrows=2, ncols=5, figsize=(25, 10), sharey=sharey)
+
+    for row_index in range(0, 2):
+
+        for col_index in range(0, 5):
+
+            for model_index in range(0, len(model_names)):
+                points_to_plot = []
+                for mode in modes:
+                    points_to_plot.append(dict_list[model_index][f'M{mode} {param_names[col_index]}'][row_index])
+
+                ax[row_index, col_index].plot(modes, points_to_plot, label=model_names[model_index])
+
+            # MSE metrics postprocessing
+            if row_index == 0:
+                if apply_log_mse:
+                    ax[row_index, col_index].set_yscale('log')
+
+                ax[row_index, col_index].set_ylabel('MSE Loss')
+                ax[row_index, col_index].set_title(f"{param_names[col_index]} MSE Loss", fontsize=2 * 6)
+
+            # R2 metrics postprocessing
+            if row_index == 1:
+                if apply_log_r2:
+                    ax[row_index, col_index].set_yscale('log')
+
+                ax[row_index, col_index].set_ylabel('R2 Loss')
+                ax[row_index, col_index].set_title(f"{param_names[col_index]} R2 Score", fontsize=2 * 6)
+
+            ax[row_index, col_index].set_xlabel('Mode number')
+            ax[row_index, col_index].tick_params(axis='y', labelleft=True)
+            ax[row_index, col_index].set_xticks(modes)
+            ax[row_index, col_index].grid(visible=True)
+            ax[row_index, col_index].legend()
+    plt.plot()
