@@ -783,7 +783,7 @@ def train_tandem_cond(model_inverse_cond, model_forward,
         num_pars_y = 20
     
     fix_indices = get_fix_indices(param_names_x, fix_params)  # getting indices of fixed parameters
-    nonfix_indices = [index for index in range(0, num_pars_x) if index is not in fix_indices]  # getting indices of non-fixed parameters
+    nonfix_indices = [index for index in range(0, num_pars_x) if index not in fix_indices]  # getting indices of non-fixed parameters
 
     pp = ProgressPlotter()
 
