@@ -782,7 +782,8 @@ def train_tandem_cond(model_inverse_cond, model_forward,
     else:
         num_pars_y = 20
     
-    fix_indices = get_fix_indices(param_names_x, fix_params)
+    fix_indices = get_fix_indices(param_names_x, fix_params)  # getting indices of fixed parameters
+    nonfix_indices = [index for index in range(0, num_pars_x) if index is not in fix_indices]  # getting indices of non-fixed parameters
 
     pp = ProgressPlotter()
 
@@ -795,17 +796,25 @@ def train_tandem_cond(model_inverse_cond, model_forward,
         for batch in train_loader:  # Training inverse model
             x, y = batch
             x, y = x.to(device), y.to(device)
+            
+            # Getting fixed and non-fixed input parameter batch
             x_fix = x[:, fix_indices]
+            x_nonfix = x[:, nonfix_indices]
+            
             optimizer.zero_grad()
 
             # Obtaining predictions of inverse and then forward model predictions
-            output_inverse = model_inverse_cond(y, x_fix)
+            output_inverse = model_inverse_cond(y)
+            
+            # To simplify the code below lets set values of non-fixed parameters right inside X-batch
+            x[:, nonfix_indices] = output_inverse
+            
+            output_forward = model_forward(x)
 
-            output_forward = model_forward(output_inverse)
-
-            loss = criterion(output_forward, y)  # calculating loss
-            loss += criterion(output_inverse, x)
+            loss = criterion(output_forward, y)  # calculating loss on forward model output
+            loss += criterion(output_inverse, x_nonfix)  # calculating loss on inverse model output (only for non-fixed parameters)
             loss.backward()
+            
             optimizer.step()
 
         # Calculating MSE and R2 metrics on train and val loaders
