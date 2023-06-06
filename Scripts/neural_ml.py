@@ -375,7 +375,7 @@ def calculate_val_metrics_tandem(model_inverse, model_forward, data_loader, para
 
 
 @torch.inference_mode()
-def calculate_val_metrics_tandem_cond(model_inverse_cond, model_forward, data_loader, fix_indices, param_names_x=None, param_names_y=None):
+def calculate_val_metrics_tandem_cond(model_inverse_cond, model_forward, data_loader, nonfix_indices, param_names_x=None, param_names_y=None):
     """
     Calculates MSE and R2 metrics on a validation dataset for conditional tandem network.
 
@@ -431,14 +431,17 @@ def calculate_val_metrics_tandem_cond(model_inverse_cond, model_forward, data_lo
     for batch in data_loader:
         x, y = batch
         x, y = x.to(device), y.to(device)
-        x_fix = x[:, fix_indices]   # choose conditional variables
-
-        # Obtaining predictions of inverse and then forward model predictions
-        output_inverse = model_inverse_cond(y, x_fix)
-        output_forward = model_forward(output_inverse)
-
+        
+        # Logging initial data
         x_log = torch.cat((x_log, x), dim=0)
         y_log = torch.cat((y_log, y), dim=0)
+
+        # Obtaining predictions of inverse and then forward model predictions
+        output_inverse = model_inverse_cond(y)
+        x[:, nonfix_indices] = output_inverse
+        output_forward = model_forward(x)
+        
+        # Logging predicted data
         output_inverse_log = torch.cat((output_inverse_log, output_inverse), dim=0)
         output_forward_log = torch.cat((output_forward_log, output_forward), dim=0)
 
@@ -798,7 +801,6 @@ def train_tandem_cond(model_inverse_cond, model_forward,
             x, y = x.to(device), y.to(device)
             
             # Getting fixed and non-fixed input parameter batch
-            x_fix = x[:, fix_indices]
             x_nonfix = x[:, nonfix_indices]
             
             optimizer.zero_grad()
@@ -822,13 +824,13 @@ def train_tandem_cond(model_inverse_cond, model_forward,
             output_dict_train_inverse, output_dict_train_forward = calculate_val_metrics_tandem_cond(model_inverse_cond,
                                                                                                      model_forward,
                                                                                                      train_loader,
-                                                                                                     fix_indices,
+                                                                                                     nonfix_indices,
                                                                                                      param_names_x,
                                                                                                      param_names_y)
             output_dict_val_inverse, output_dict_val_forward = calculate_val_metrics_tandem_cond(model_inverse_cond,
                                                                                                  model_forward,
                                                                                                  val_loader,
-                                                                                                 fix_indices,
+                                                                                                 nonfix_indices,
                                                                                                  param_names_x,
                                                                                                  param_names_y)
 
