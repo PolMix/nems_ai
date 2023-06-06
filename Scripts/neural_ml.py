@@ -442,7 +442,7 @@ def calculate_val_metrics_tandem_cond(model_inverse_cond, model_forward, data_lo
         output_forward = model_forward(x)
         
         # Logging predicted data
-        output_inverse_log = torch.cat((output_inverse_log, output_inverse), dim=0)
+        output_inverse_log = torch.cat((output_inverse_log, x), dim=0)
         output_forward_log = torch.cat((output_forward_log, output_forward), dim=0)
 
     output_dict_inverse = calculate_metrics_torch(y_true=x_log, y_pred=output_inverse_log, param_names=param_names_x)
