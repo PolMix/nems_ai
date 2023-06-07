@@ -375,7 +375,7 @@ def calculate_val_metrics_tandem(model_inverse, model_forward, data_loader, para
 
 
 @torch.inference_mode()
-def calculate_val_metrics_tandem_cond(model_inverse_cond, model_forward, data_loader, nonfix_indices, param_names_x=None, param_names_y=None):
+def calculate_val_metrics_tandem_cond(model_inverse_cond, model_forward, data_loader, fix_indices, param_names_x=None, param_names_y=None):
     """
     Calculates MSE and R2 metrics on a validation dataset for conditional tandem network.
 
@@ -417,6 +417,9 @@ def calculate_val_metrics_tandem_cond(model_inverse_cond, model_forward, data_lo
     else:
         num_pars_y = 20
 
+    # Getting non-fixed indices
+    nonfix_indices = [index for index in range(0, num_pars_x) if index not in fix_indices]
+
     # Logs for X-data
     x_log = torch.empty(size=[0, num_pars_x]).to(device)
     output_inverse_log = torch.empty(size=[0, num_pars_x]).to(device)
@@ -431,17 +434,22 @@ def calculate_val_metrics_tandem_cond(model_inverse_cond, model_forward, data_lo
     for batch in data_loader:
         x, y = batch
         x, y = x.to(device), y.to(device)
-        
-        # Logging initial data
+        x_fix = x[:, fix_indices]   # choose conditional variables
+
+        # Logging
         x_log = torch.cat((x_log, x), dim=0)
         y_log = torch.cat((y_log, y), dim=0)
 
-        # Obtaining predictions of inverse and then forward model predictions
-        output_inverse = model_inverse_cond(y)
+        # Put resonant parameters and fixed parameters into the inverse model
+        output_inverse = model_inverse_cond(y, x_fix)
+
+        # In output_inverse we have only non-fixed x-parameters --> we need to replace them in `x` in order to input `x` into the forward model
         x[:, nonfix_indices] = output_inverse
+
+        # Put x-parameters into the forward model
         output_forward = model_forward(x)
-        
-        # Logging predicted data
+
+        # Logging
         output_inverse_log = torch.cat((output_inverse_log, x), dim=0)
         output_forward_log = torch.cat((output_forward_log, output_forward), dim=0)
 
@@ -785,8 +793,10 @@ def train_tandem_cond(model_inverse_cond, model_forward,
     else:
         num_pars_y = 20
     
-    fix_indices = get_fix_indices(param_names_x, fix_params)  # getting indices of fixed parameters
-    nonfix_indices = [index for index in range(0, num_pars_x) if index not in fix_indices]  # getting indices of non-fixed parameters
+    fix_indices = get_fix_indices(param_names_x, fix_params)
+
+    # Getting non-fixed indices
+    nonfix_indices = [index for index in range(0, num_pars_x) if index not in fix_indices]
 
     pp = ProgressPlotter()
 
@@ -799,24 +809,25 @@ def train_tandem_cond(model_inverse_cond, model_forward,
         for batch in train_loader:  # Training inverse model
             x, y = batch
             x, y = x.to(device), y.to(device)
-            
-            # Getting fixed and non-fixed input parameter batch
-            x_nonfix = x[:, nonfix_indices]
-            
+
+            # Fixed x-parameters
+            x_fix = x[:, fix_indices]
+
+            # Non-fixed x-parameters (they're required to calculate loss below)
+            x_nonfix_true = x[:, nonfix_indices]
             optimizer.zero_grad()
 
-            # Obtaining predictions of inverse and then forward model predictions
-            output_inverse = model_inverse_cond(y)
-            
-            # To simplify the code below lets set values of non-fixed parameters right inside X-batch
+            # Obtaining predictions of inverse model
+            output_inverse = model_inverse_cond(y, x_fix)
+
+            # In output_inverse we have only non-fixed x-parameters --> we need to replace them in `x` in order to input `x` into the forward model
             x[:, nonfix_indices] = output_inverse
-            
+
             output_forward = model_forward(x)
 
-            loss = criterion(output_forward, y)  # calculating loss on forward model output
-            loss += criterion(output_inverse, x_nonfix)  # calculating loss on inverse model output (only for non-fixed parameters)
+            loss = criterion(output_forward, y)  # calculating loss
+            loss += criterion(output_inverse, x_nonfix_true)
             loss.backward()
-            
             optimizer.step()
 
         # Calculating MSE and R2 metrics on train and val loaders
@@ -824,13 +835,13 @@ def train_tandem_cond(model_inverse_cond, model_forward,
             output_dict_train_inverse, output_dict_train_forward = calculate_val_metrics_tandem_cond(model_inverse_cond,
                                                                                                      model_forward,
                                                                                                      train_loader,
-                                                                                                     nonfix_indices,
+                                                                                                     fix_indices,
                                                                                                      param_names_x,
                                                                                                      param_names_y)
             output_dict_val_inverse, output_dict_val_forward = calculate_val_metrics_tandem_cond(model_inverse_cond,
                                                                                                  model_forward,
                                                                                                  val_loader,
-                                                                                                 nonfix_indices,
+                                                                                                 fix_indices,
                                                                                                  param_names_x,
                                                                                                  param_names_y)
 
