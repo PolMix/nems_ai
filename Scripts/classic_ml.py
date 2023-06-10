@@ -513,7 +513,7 @@ class CustomCV:
 
         # Metrics plotting for the specified fold
         print('Started plotting metrics.')
-        fig_metrics, ax_metrics = plt.subplots(nrows=1, ncols=2, figsize=(5 * 2, 5))
+        # fig_metrics, ax_metrics = plt.subplots(nrows=1, ncols=2, figsize=(5 * 2, 5))
         ax_metrics[0], ax_metrics[1] = self.plot_metrics_dense(fold_index=fold_index,
                                                                apply_log_mse=True,
                                                                apply_log_r2=False)
