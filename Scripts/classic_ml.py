@@ -640,7 +640,7 @@ class CustomCV:
 
             ax[0, name_index].set_title("MSE Loss.", fontsize=2 * 3)
             ax[0, name_index].set_xlabel('Fold index')
-            ax[0, name_index].set_ylabel('MSE Loss')
+            ax[0, name_index].set_ylabel(f'{name} MSE Loss')
             ax[0, name_index].set_xticks(range(self.n_splits))
             ax[0, name_index].grid(visible=True)
             ax[0, name_index].legend()
@@ -660,7 +660,7 @@ class CustomCV:
 
             ax[1, name_index].set_title("R2 Score.", fontsize=2 * 3)
             ax[1, name_index].set_xlabel('Fold index')
-            ax[1, name_index].set_ylabel('R2 Score')
+            ax[1, name_index].set_ylabel(f'{name} R2 Score')
             ax[1, name_index].set_xticks(range(self.n_splits))
             ax[1, name_index].grid(visible=True)
             ax[1, name_index].legend()
