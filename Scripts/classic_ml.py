@@ -591,3 +591,78 @@ class CustomCV:
             ax_y[mode, index - 5 * mode].set_ylabel('Count')
         print('Y-data disribution has been successfully plotted!')
         plt.plot()
+
+    def plot_metrics_folds(self, apply_log_mse, apply_log_r2, modes=None, param_names=None):
+        """
+        Returns two ax objects with plotted metrics.
+
+        Parameters
+        ----------
+        apply_log_mse : bool
+            If True, y-axis of all MSE metric plots will be log-scaled.
+        apply_log_r2 : bool
+            If True, y-axis of all R2 metric plots will be log-scaled.
+        modes: list of int
+            List containing mode number (default [1, 2, 3, 4]).
+        param_names : list of str or None
+            Parameter names (`M{mode} Param_name` without mode number specification) to be used for metrics calculations. If None, uses all params in output_dict.keys() (defaul None).
+
+        Returns
+        ----------
+        ax_mse : axes object
+            Axes object with values for MSE metric plotted.
+        ax_r2 : axes object
+            Axes object with values for R2 metric plotted.
+        """
+        if param_names is None:
+            param_names = ['Eigenfrequency (Hz)', 'Quality factor', 'Effective mass (kg)', 'TED (W)',
+                           'Noise (kg^2/s^3)']
+
+        if modes is None:
+            modes = [1, 2, 3, 4]
+
+        fig, ax = plt.subplots(nrows=2,
+                               ncols=len(param_names),
+                               figsize=(5 * len(param_names), 5 * 2))
+
+        # MSE metrics visualization
+        for name_index, name in enumerate(param_names):
+            for mode in modes:
+                points_to_plot = []
+
+                for fold_index in range(self.n_splits):
+                    points_to_plot.append(self.metrics_log[fold_index][f'M{mode} ' + f'{name}'][0])
+
+                ax[0, name_index].plot(range(self.n_splits), points_to_plot, label=f'Mode {mode}')
+
+            if apply_log_mse:
+                ax[0, name_index].set_yscale('log')
+
+            ax[0, name_index].set_title("MSE Loss.", fontsize=2 * 3)
+            ax[0, name_index].set_xlabel('Fold index')
+            ax[0, name_index].set_ylabel('MSE Loss')
+            ax[0, name_index].set_xticks(range(self.n_splits))
+            ax[0, name_index].grid(visible=True)
+            ax[0, name_index].legend()
+
+            # R2 metrics visualization
+            for mode in modes:
+                points_to_plot = []
+
+                for fold_index in range(self.n_splits):
+                    points_to_plot.append(self.metrics_log[fold_index][f'M{mode} ' + f'{name}'][1])
+
+                ax[1, name_index].plot(range(self.n_splits), points_to_plot, label=f'Mode {mode}')
+
+
+            if apply_log_r2:
+                ax[1, name_index].set_yscale('log')
+
+            ax[1, name_index].set_title("R2 Score.", fontsize=2 * 3)
+            ax[1, name_index].set_xlabel('Fold index')
+            ax[1, name_index].set_ylabel('R2 Score')
+            ax[1, name_index].set_xticks(range(self.n_splits))
+            ax[1, name_index].grid(visible=True)
+            ax[1, name_index].legend()
+
+        plt.plot()
