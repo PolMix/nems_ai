@@ -495,8 +495,6 @@ class CustomCV:
         ax[1].legend()
 
         ax_mse, ax_r2 = ax[0], ax[1]
-        
-        plt.close(fig)
 
         return ax_mse, ax_r2
 
