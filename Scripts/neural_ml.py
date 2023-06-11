@@ -518,9 +518,9 @@ def train_mlp(model, train_loader, val_loader, criterion, optimizer, scheduler, 
         output_dict = calculate_metrics_torch(y_true=y_log, y_pred=output_log, param_names=param_names)
 
         # Logging
-        if epoch % 10 == 0:
-            pp.add_scalar('MSE_train', output_dict[plot_param][0].cpu().detach().numpy())
-            pp.add_scalar('R2_train', output_dict[plot_param][1].cpu().detach().numpy())
+
+        pp.add_scalar('MSE_train', output_dict[plot_param][0].cpu().detach().numpy())
+        pp.add_scalar('R2_train', output_dict[plot_param][1].cpu().detach().numpy())
 
         # Metrics on val
         model.eval()
@@ -528,9 +528,9 @@ def train_mlp(model, train_loader, val_loader, criterion, optimizer, scheduler, 
 
         scheduler.step(output_dict_val[plot_param][0])
 
-        if epoch % 10 == 0:
-            pp.add_scalar('MSE_val', output_dict_val[plot_param][0].cpu().detach().numpy())
-            pp.add_scalar('R2_val', output_dict_val[plot_param][1].cpu().detach().numpy())
+        
+        pp.add_scalar('MSE_val', output_dict_val[plot_param][0].cpu().detach().numpy())
+        pp.add_scalar('R2_val', output_dict_val[plot_param][1].cpu().detach().numpy())
 
         if epoch % 10 == 0:
             pp.display([['MSE_train', 'MSE_val'], ['R2_train', 'R2_val']])
