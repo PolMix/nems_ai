@@ -144,9 +144,9 @@ class ProgressPlotter:
             ax.legend(loc="lower left")
         else:
             ax.set_ylabel(key)
-        ax.set_xlabel('step')
-        ax.set_xticks(np.arange(history_len))
-        ax.set_xticklabels(np.arange(history_len))
+        ax.set_xlabel('Epoch (x10)')
+        ax.set_xticks(np.arange(1, history_len + 1))
+        ax.set_xticklabels(np.arange(1, history_len + 1))
 
     def display(self, groups=None):
         """
