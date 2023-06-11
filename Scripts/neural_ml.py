@@ -1010,6 +1010,34 @@ def get_readable_metrics_mlp(model, data_loader, param_names=None):
     return output_dict
 
 
+@torch.inference_mode()
+def calculate_val_metrics_branched(model, data_loader, param_names=None):
+    """
+    Calculates MSE and R2 metrics on a dataset for branched network and converts it into readable format.
+
+    Parameters
+    ----------
+    model : model object
+        Model that is being trained.
+    data_loader : torch.utils.data.DataLoader
+        Validation dataset dataloader.
+    param_names : list of str or None
+        Parameter names (format `M{mode} Param_name`) to be used for metrics calculations. If None, uses 5 convenient params and 4 modes (default None).
+
+    Returns
+    ----------
+    output_dict : dict
+        Dictionary that contains param name as a key and list of 2 values (MSE and R2 metrics) for that param. For instance, {'M1 Eigenfrequency (Hz)': [0.01, 0.95]}
+    """
+    output_dict = calculate_val_metrics_branched(model, data_loader, param_names)
+    
+    for name in output_dict.keys():
+        for index in range(0, len(output_dict[name])):
+            output_dict[name][index] = output_dict[name][index].item()
+
+    return output_dict
+
+
 def compare_models(dict_list, model_names, param_names, apply_log_mse, apply_log_r2, modes=None, sharey='row'):
     """
     Plots metrics of specified models on one plot.
