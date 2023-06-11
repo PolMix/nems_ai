@@ -115,7 +115,7 @@ class ProgressPlotter:
         value : float
             Value to be added to history dict.
         """
-        self._history_dict[tag].append(value)  # тут можно хранить разные величины
+        self._history_dict[tag].append(value)
 
     def display_keys(self, ax, tags):
         """
@@ -138,7 +138,7 @@ class ProgressPlotter:
         history_len = 0
         ax.grid()
         for key in tags:
-            ax.plot(self._history_dict[key], marker="X", label=key)
+            ax.plot(self._history_dict[key], marker=".", label=key)
             history_len = max(history_len, len(self.history_dict[key]))
         if len(tags) > 1:
             ax.legend(loc="lower left")
@@ -146,7 +146,7 @@ class ProgressPlotter:
             ax.set_ylabel(key)
         ax.set_xlabel('Epoch (x10)')
         ax.set_xticks(np.arange(0, history_len, 10))
-        ax.set_xticklabels(np.arange(1, history_len + 1, 10))
+        ax.set_xticklabels(np.arange(0, history_len, 10))
 
     def display(self, groups=None):
         """
@@ -495,7 +495,7 @@ def train_mlp(model, train_loader, val_loader, criterion, optimizer, scheduler, 
 
     pp = ProgressPlotter()
 
-    for epoch in range(num_epochs):
+    for epoch in range(num_epochs+1):
         y_log = torch.empty(size=[0, num_pars_y]).to(device)
         output_log = torch.empty(size=[0, num_pars_y]).to(device)
 
