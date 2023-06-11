@@ -146,7 +146,7 @@ class ProgressPlotter:
             ax.set_ylabel(key)
         ax.set_xlabel('Epoch (x10)')
         ax.set_xticks(np.arange(0, history_len, 10))
-        ax.set_xticklabels(np.arange(1, history_len + 1))
+        ax.set_xticklabels(np.arange(1, history_len + 1, 10))
 
     def display(self, groups=None):
         """
