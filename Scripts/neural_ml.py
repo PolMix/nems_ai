@@ -145,7 +145,7 @@ class ProgressPlotter:
         else:
             ax.set_ylabel(key)
         ax.set_xlabel('Epoch (x10)')
-        ax.set_xticks(np.arange(history_len))
+        ax.set_xticks(np.arange(0, history_len, 10))
         ax.set_xticklabels(np.arange(1, history_len + 1))
 
     def display(self, groups=None):
@@ -518,7 +518,6 @@ def train_mlp(model, train_loader, val_loader, criterion, optimizer, scheduler, 
         output_dict = calculate_metrics_torch(y_true=y_log, y_pred=output_log, param_names=param_names)
 
         # Logging
-
         pp.add_scalar('MSE_train', output_dict[plot_param][0].cpu().detach().numpy())
         pp.add_scalar('R2_train', output_dict[plot_param][1].cpu().detach().numpy())
 
@@ -528,7 +527,7 @@ def train_mlp(model, train_loader, val_loader, criterion, optimizer, scheduler, 
 
         scheduler.step(output_dict_val[plot_param][0])
 
-        
+        # Logging
         pp.add_scalar('MSE_val', output_dict_val[plot_param][0].cpu().detach().numpy())
         pp.add_scalar('R2_val', output_dict_val[plot_param][1].cpu().detach().numpy())
 
