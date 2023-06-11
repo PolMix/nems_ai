@@ -668,3 +668,38 @@ class CustomCV:
         plt.tight_layout()
 
         plt.plot()
+        
+        
+def get_min_max_metrics(metrics_log):
+    """
+    Calculates min and max (through all modes) MSE and R2 metrics for all parameters in metrics_log. 
+
+    Parameters
+    ----------
+    metrics_log : dict
+        Dictionary with kyes of the format `M{mode} Param_name` that contains MSE and R2 metrics logs.
+
+    Returns
+    ----------
+    output_dict : dict
+        Dictionary that contains param name as a key and list of 4 values (MSE and R2 metrics) for that param. For instance, {'Eigenfrequency (Hz)': [0.01, 0.02, 0.95, 0.97]}.
+    """
+    output_dict = {}
+
+    param_names = ['Eigenfrequency (Hz)', 'Quality factor', 'Effective mass (kg)', 'TED (W)', 'Noise (kg^2/s^3)']
+    for name in param_names:
+        output_dict[name] = []
+
+        metrics_values_mse = []
+        metrics_values_r2 = []
+
+        for name_old in metrics_log.keys():
+            if name in name_old:
+                metrics_values_mse.append(metrics_log[name_old][0])
+                metrics_values_r2.append(metrics_log[name_old][1])
+        output_dict[name].append(min(metrics_values_mse))
+        output_dict[name].append(max(metrics_values_mse))
+        output_dict[name].append(min(metrics_values_r2))
+        output_dict[name].append(max(metrics_values_r2))
+    
+    return output_dict
