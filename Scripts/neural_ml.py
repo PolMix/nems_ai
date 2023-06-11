@@ -1095,4 +1095,5 @@ def compare_models(dict_list, model_names, param_names, apply_log_mse, apply_log
             ax[row_index, col_index].set_xticks(modes)
             ax[row_index, col_index].grid(visible=True)
             ax[row_index, col_index].legend()
+    plt.tight_layout()
     plt.plot()
