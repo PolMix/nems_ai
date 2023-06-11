@@ -144,7 +144,7 @@ class ProgressPlotter:
             ax.legend(loc="lower left")
         else:
             ax.set_ylabel(key)
-        ax.set_xlabel('Epoch (x10)')
+        ax.set_xlabel('Epoch')
         ax.set_xticks(np.arange(0, history_len, 10))
         ax.set_xticklabels(np.arange(0, history_len, 10))
 
@@ -581,7 +581,7 @@ def train_branched(model,
 
     pp = ProgressPlotter()
 
-    for epoch in range(num_epochs):
+    for epoch in range(num_epochs+1):
         y_log = torch.empty(size=[0, num_pars_y]).to(device)
         output_log = torch.empty(size=[0, num_pars_y]).to(device)
 
@@ -609,21 +609,19 @@ def train_branched(model,
         output_dict = calculate_metrics_torch(y_true=y_log, y_pred=output_log, param_names=param_names)
 
         # Logging
-        if epoch % 10 == 0:
-            pp.add_scalar('MSE_train', output_dict[plot_param][0].cpu().detach().numpy())
-            pp.add_scalar('R2_train', output_dict[plot_param][1].cpu().detach().numpy())
+        pp.add_scalar('MSE_train', output_dict[plot_param][0].cpu().detach().numpy())
+        pp.add_scalar('R2_train', output_dict[plot_param][1].cpu().detach().numpy())
 
         model.eval()
         output_dict_val = calculate_val_metrics_branched(model=model, data_loader=val_loader, param_names=param_names)
 
         scheduler.step(output_dict_val[plot_param][0])
+        
+        # Logging
+        pp.add_scalar('MSE_val', output_dict_val[plot_param][0].cpu().detach().numpy())
+        pp.add_scalar('R2_val', output_dict_val[plot_param][1].cpu().detach().numpy())
 
         if epoch % 10 == 0:
-            pp.add_scalar('MSE_val', output_dict_val[plot_param][0].cpu().detach().numpy())
-            pp.add_scalar('R2_val', output_dict_val[plot_param][1].cpu().detach().numpy())
-
-        if epoch % 10 == 0:
-            # pp.display([['loss_train', 'loss_val']])
             pp.display([['MSE_train', 'MSE_val'], ['R2_train', 'R2_val']])
     return pp
 
@@ -686,7 +684,7 @@ def train_tandem(model_inverse, model_forward,
 
     model_forward.eval()
 
-    for epoch in range(num_epochs):
+    for epoch in range(num_epochs+1):
 
         model_inverse.train()
 
@@ -718,20 +716,20 @@ def train_tandem(model_inverse, model_forward,
             scheduler.step(output_dict_val_forward[plot_param][0])
 
         # Logging
+        if plot_param in param_names_x:
+            pp.add_scalar('MSE_train', output_dict_train_inverse[plot_param][0].cpu().detach().numpy())
+            pp.add_scalar('R2_train', output_dict_train_inverse[plot_param][1].cpu().detach().numpy())
+            pp.add_scalar('MSE_val', output_dict_val_inverse[plot_param][0].cpu().detach().numpy())
+            pp.add_scalar('R2_val', output_dict_val_inverse[plot_param][1].cpu().detach().numpy())
+
+        elif plot_param in param_names_y:
+            pp.add_scalar('MSE_train', output_dict_train_forward[plot_param][0].cpu().detach().numpy())
+            pp.add_scalar('R2_train', output_dict_train_forward[plot_param][1].cpu().detach().numpy())
+            pp.add_scalar('MSE_val', output_dict_val_forward[plot_param][0].cpu().detach().numpy())
+            pp.add_scalar('R2_val', output_dict_val_forward[plot_param][1].cpu().detach().numpy())
+
+        # Displaying current results
         if epoch % 10 == 0:
-            if plot_param in param_names_x:
-                pp.add_scalar('MSE_train', output_dict_train_inverse[plot_param][0].cpu().detach().numpy())
-                pp.add_scalar('R2_train', output_dict_train_inverse[plot_param][1].cpu().detach().numpy())
-                pp.add_scalar('MSE_val', output_dict_val_inverse[plot_param][0].cpu().detach().numpy())
-                pp.add_scalar('R2_val', output_dict_val_inverse[plot_param][1].cpu().detach().numpy())
-
-            elif plot_param in param_names_y:
-                pp.add_scalar('MSE_train', output_dict_train_forward[plot_param][0].cpu().detach().numpy())
-                pp.add_scalar('R2_train', output_dict_train_forward[plot_param][1].cpu().detach().numpy())
-                pp.add_scalar('MSE_val', output_dict_val_forward[plot_param][0].cpu().detach().numpy())
-                pp.add_scalar('R2_val', output_dict_val_forward[plot_param][1].cpu().detach().numpy())
-
-                # Displaying current results
             pp.display([['MSE_train', 'MSE_val'], ['R2_train', 'R2_val']])
     return pp
 
@@ -801,7 +799,7 @@ def train_tandem_cond(model_inverse_cond, model_forward,
 
     model_forward.eval()
 
-    for epoch in range(num_epochs):
+    for epoch in range(num_epochs+1):
 
         model_inverse_cond.train()
 
@@ -851,20 +849,20 @@ def train_tandem_cond(model_inverse_cond, model_forward,
             scheduler.step(output_dict_val_forward[plot_param][0])
 
         # Logging
+        if plot_param in param_names_x:
+            pp.add_scalar('MSE_train', output_dict_train_inverse[plot_param][0].cpu().detach().numpy())
+            pp.add_scalar('R2_train', output_dict_train_inverse[plot_param][1].cpu().detach().numpy())
+            pp.add_scalar('MSE_val', output_dict_val_inverse[plot_param][0].cpu().detach().numpy())
+            pp.add_scalar('R2_val', output_dict_val_inverse[plot_param][1].cpu().detach().numpy())
+
+        elif plot_param in param_names_y:
+            pp.add_scalar('MSE_train', output_dict_train_forward[plot_param][0].cpu().detach().numpy())
+            pp.add_scalar('R2_train', output_dict_train_forward[plot_param][1].cpu().detach().numpy())
+            pp.add_scalar('MSE_val', output_dict_val_forward[plot_param][0].cpu().detach().numpy())
+            pp.add_scalar('R2_val', output_dict_val_forward[plot_param][1].cpu().detach().numpy())
+
+        # Displaying current results
         if epoch % 10 == 0:
-            if plot_param in param_names_x:
-                pp.add_scalar('MSE_train', output_dict_train_inverse[plot_param][0].cpu().detach().numpy())
-                pp.add_scalar('R2_train', output_dict_train_inverse[plot_param][1].cpu().detach().numpy())
-                pp.add_scalar('MSE_val', output_dict_val_inverse[plot_param][0].cpu().detach().numpy())
-                pp.add_scalar('R2_val', output_dict_val_inverse[plot_param][1].cpu().detach().numpy())
-
-            elif plot_param in param_names_y:
-                pp.add_scalar('MSE_train', output_dict_train_forward[plot_param][0].cpu().detach().numpy())
-                pp.add_scalar('R2_train', output_dict_train_forward[plot_param][1].cpu().detach().numpy())
-                pp.add_scalar('MSE_val', output_dict_val_forward[plot_param][0].cpu().detach().numpy())
-                pp.add_scalar('R2_val', output_dict_val_forward[plot_param][1].cpu().detach().numpy())
-
-                # Displaying current results
             pp.display([['MSE_train', 'MSE_val'], ['R2_train', 'R2_val']])
     return pp
 
@@ -934,7 +932,7 @@ def train_branched_wrapped(wrapper,
 
     pp = ProgressPlotter()
 
-    for epoch in range(num_epochs):
+    for epoch in range(num_epochs+1):
         y_log = torch.empty(size=[0, num_pars_y]).to(device)
         output_log = torch.empty(size=[0, num_pars_y]).to(device)
 
@@ -961,21 +959,19 @@ def train_branched_wrapped(wrapper,
         output_dict = calculate_metrics_torch(y_true=y_log, y_pred=output_log, param_names=param_names)
 
         # Logging
-        if epoch % 10 == 0:
-            pp.add_scalar('MSE_train', output_dict[plot_param][0].cpu().detach().numpy())
-            pp.add_scalar('R2_train', output_dict[plot_param][1].cpu().detach().numpy())
+        pp.add_scalar('MSE_train', output_dict[plot_param][0].cpu().detach().numpy())
+        pp.add_scalar('R2_train', output_dict[plot_param][1].cpu().detach().numpy())
 
         wrapper.eval()
         output_dict_val = calculate_val_metrics_branched(wrapper.model, val_loader, param_names)
 
         scheduler.step(output_dict_val[plot_param][0])
 
-        if epoch % 10 == 0:
-            pp.add_scalar('MSE_val', output_dict_val[plot_param][0].cpu().detach().numpy())
-            pp.add_scalar('R2_val', output_dict_val[plot_param][1].cpu().detach().numpy())
+        # Logging
+        pp.add_scalar('MSE_val', output_dict_val[plot_param][0].cpu().detach().numpy())
+        pp.add_scalar('R2_val', output_dict_val[plot_param][1].cpu().detach().numpy())
 
         if epoch % 10 == 0:
-            # pp.display([['loss_train', 'loss_val']])
             pp.display([['MSE_train', 'MSE_val'], ['R2_train', 'R2_val']])
     return pp, loss_coeffs
 
