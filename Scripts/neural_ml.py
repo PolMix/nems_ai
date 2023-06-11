@@ -1011,7 +1011,7 @@ def get_readable_metrics_mlp(model, data_loader, param_names=None):
 
 
 @torch.inference_mode()
-def calculate_val_metrics_branched(model, data_loader, param_names=None):
+def get_readable_metrics_branched(model, data_loader, param_names=None):
     """
     Calculates MSE and R2 metrics on a dataset for branched network and converts it into readable format.
 
