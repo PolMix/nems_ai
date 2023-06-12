@@ -748,7 +748,7 @@ def train_tandem_cond(model_inverse_cond, model_forward,
     Parameters
     ----------
     model_inverse_cond : model object
-        Inverse tandem model that, in addition to convenient Y-data input, has 4 inputs for fixed X-data (temperature, distance, voltage and pretension).
+        Inverse tandem model that, in addition to convenient Y-data input, has some inputs fixed (e.g. temperature, distance, voltage and pretension).
     model_forward : model object
         Forward tandem model.
     fix_params : list of str
@@ -1031,6 +1031,90 @@ def get_readable_metrics_branched(model, data_loader, param_names=None):
             output_dict[name][index] = output_dict[name][index].item()
 
     return output_dict
+
+
+@torch.inference_mode()
+def get_readable_metrics_tandem(model_inverse, model_forward, data_loader, param_names_x=None, param_names_y=None):
+    """
+    Calculates MSE and R2 metrics on a dataset for branched network and converts it into readable format.
+
+    Parameters
+    ----------
+    model_inverse : model object
+        Inverse tandem model.
+    model_forward : model object
+        Forward tandem model.
+    data_loader : torch.utils.data.DataLoader
+        Validation dataset dataloader.
+    param_names_x : list of str or None
+        X-parameter names (format `Parameter`) to be used for metrics calculations. If None, uses 8 convenient params (default None).
+    param_names_y : list of str or None
+        Y-parameter names (format `M{mode} Param_name`) to be used for metrics calculations. If None, uses 5 convenient params and 4 modes (default None).
+
+    Returns
+    ----------
+    output_dict_inverse : dict
+        Dictionary that contains x-param name as a key and list of 2 values (MSE and R2 metrics) for that x-param. For instance, {'Beam lenght (um)': [0.01, 0.95]}.
+    output_dict_forward : dict
+        Dictionary that contains y-param name as a key and list of 2 values (MSE and R2 metrics) for that y-param. For instance, {'M1 Eigenfrequency (Hz)': [0.01, 0.95]}
+    
+    """
+    output_dict_inverse, output_dict_forward = calculate_val_metrics_tandem(model_inverse, model_forward,
+                                                                            data_loader, param_names_x, param_names_y)
+    
+    for name in output_dict_inverse.keys():
+        for index in range(0, len(output_dict_inverse[name])):
+            output_dict_inverse[name][index] = output_dict_inverse[name][index].item()
+    
+    for name in output_dict_forward.keys():
+        for index in range(0, len(output_dict_forward[name])):
+            output_dict_forward[name][index] = output_dict_forward[name][index].item()
+
+    return output_dict_inverse, output_dict_forward
+
+
+@torch.inference_mode()
+def get_readable_metrics_tandem_cond(model_inverse_cond, model_forward, data_loader, fix_indices, param_names_x=None, param_names_y=None):
+    """
+    Calculates MSE and R2 metrics on a dataset for branched network and converts it into readable format.
+
+    Parameters
+    ----------
+    model_inverse_cond : model object
+        Inverse tandem model that, in addition to convenient Y-data input, has some inputs fixed (e.g. temperature, distance, voltage and pretension).
+    model_forward : model object
+        Forward tandem model.
+    data_loader : torch.utils.data.DataLoader
+        Validation dataset dataloader.
+    param_names_x : list of str or None
+        X-parameter names (format `Parameter`) to be used for metrics calculations. If None, uses 8 convenient params (default None).
+    param_names_y : list of str or None
+        Y-parameter names (format `M{mode} Param_name`) to be used for metrics calculations. If None, uses 5 convenient params and 4 modes (default None).
+
+    Returns
+    ----------
+    output_dict_inverse : dict
+        Dictionary that contains x-param name as a key and list of 2 values (MSE and R2 metrics) for that x-param. For instance, {'Beam lenght (um)': [0.01, 0.95]}.
+    output_dict_forward : dict
+        Dictionary that contains y-param name as a key and list of 2 values (MSE and R2 metrics) for that y-param. For instance, {'M1 Eigenfrequency (Hz)': [0.01, 0.95]}
+    
+    """
+    output_dict_inverse, output_dict_forward = calculate_val_metrics_tandem_cond(model_inverse_cond,
+                                                                                 model_forward,
+                                                                                 val_loader,
+                                                                                 fix_indices,
+                                                                                 param_names_x,
+                                                                                 param_names_y)
+    
+    for name in output_dict_inverse.keys():
+        for index in range(0, len(output_dict_inverse[name])):
+            output_dict_inverse[name][index] = output_dict_inverse[name][index].item()
+    
+    for name in output_dict_forward.keys():
+        for index in range(0, len(output_dict_forward[name])):
+            output_dict_forward[name][index] = output_dict_forward[name][index].item()
+
+    return output_dict_inverse, output_dict_forward
 
 
 def compare_models(dict_list, model_names, param_names, apply_log_mse, apply_log_r2, modes=None, sharey='row'):
