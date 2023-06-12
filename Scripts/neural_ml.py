@@ -1102,7 +1102,7 @@ def get_readable_metrics_tandem_cond(model_inverse_cond, model_forward, data_loa
     """
     output_dict_inverse, output_dict_forward = calculate_val_metrics_tandem_cond(model_inverse_cond,
                                                                                  model_forward,
-                                                                                 val_loader,
+                                                                                 data_loader,
                                                                                  fix_indices,
                                                                                  param_names_x,
                                                                                  param_names_y)
