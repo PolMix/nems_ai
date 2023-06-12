@@ -699,7 +699,7 @@ def train_tandem(model_inverse, model_forward,
             output_forward = model_forward(output_inverse)
 
             loss = criterion(output_forward, y)  # calculating loss
-            loss += criterion(output_inverse, x)
+            #loss += criterion(output_inverse, x)  # uncomment if you want to add loss on X-data
             loss.backward()
             optimizer.step()
 
