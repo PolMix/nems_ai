@@ -156,10 +156,13 @@ class ProgressPlotter:
         ----------
         groups : list containing lists of str
             All tags specified in 2nd level list will be plotted on the same plot. For instance, groups = [['loss_val', 'loss_train'], ['acc_val', 'acc_train']].
-        """
         clear_output()
         n_groups = len(groups)
         fig, ax = plt.subplots(n_groups, 1, figsize=(12, 3 * n_groups))
+        
+        for axis in ax:
+            axis.set_xscale('log')
+        
         if n_groups == 1:
             ax = [ax]
         for i, keys in enumerate(groups):
