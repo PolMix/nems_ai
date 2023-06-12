@@ -159,10 +159,6 @@ class ProgressPlotter:
         clear_output()
         n_groups = len(groups)
         fig, ax = plt.subplots(n_groups, 1, figsize=(12, 3 * n_groups))
-        
-        for axis in ax:
-            axis.set_xscale('log')
-        
         if n_groups == 1:
             ax = [ax]
         for i, keys in enumerate(groups):
