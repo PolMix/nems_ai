@@ -40,6 +40,34 @@ def get_elapsed_time(model, x, num_samples=200):
     return elapsed_time
 
 
+def get_elapsed_time_tabnet(model, x, num_samples=200):
+    """
+    Returns time elapsed during evaluation for TabNet Regressor model.
+
+    Parameters
+    ----------
+    model : model object
+        Trained model evaluation time to be measured for.
+    x : pd.DataFrame
+        Dataframe that contains data to input into the model.
+    num_samples : int
+        Number of samples to be used for evaluation (default 200).
+
+    Returns
+    ----------
+    elapsed_time : float
+        Elapsed time.
+    """
+    samples_x = x.iloc[:num_samples, :]
+    time_start = time()
+    samples_y = model.predict(samples_x.values)
+    time_stop = time()
+
+    elapsed_time = time_stop - time_start
+
+    return elapsed_time
+
+
 def calculate_metrics(y_true, y_pred, param_names=None):
     """
     Calculates MSE and R2 metrics for all parameters in dataset.
